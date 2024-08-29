@@ -25,8 +25,6 @@ def process_df(df):
 
 grouping_columns=["pattern.numberOfDimensions", "inputFile", "dataset"]
 result = get_queries_statistics_by_time(process_df, grouping_columns)
-#filter out from result where dataset is D_{{real}_2} pattern.numberOfDimensions = 3 and time_choose_queries > 1000
-#result = result[~((result["dataset"] == "$D_{{real}_2}$") & (result["pattern.numberOfDimensions"] == 3) & (result["time_choose_queries"] > 1000))]
 
 def aggregate(df, columns):
     return df.groupby(columns).agg(

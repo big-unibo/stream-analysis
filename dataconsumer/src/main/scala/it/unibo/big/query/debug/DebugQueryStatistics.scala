@@ -4,7 +4,6 @@ import it.unibo.big.input.GPSJConcepts.GPQuery
 import it.unibo.big.input.RecordModeling.Window
 import it.unibo.big.input.{ConfigurationUtils, NaiveConfiguration, SimulationConfiguration}
 import it.unibo.big.query.debug.DebugUtils.{DebugStatistics, formattedString, getValue}
-import it.unibo.big.query.similarity.QuerySimilarity
 import it.unibo.big.query.state.{QueryStatisticsInPane, State}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -34,7 +33,6 @@ case class DebugQueryStatistics(window: Window,
   private val queryExecuted = sortedStatistics.map(x => x._2.exists(_.isExecuted == true))
   private val queryStored = sortedStatistics.map(x => x._2.exists(_.isStored == true))
   //If q is the selected query, calculate the similarity between q and the previous query
-  private val previousQuerySimilarity = if(selectedQuery.contains(query) && previousChosenQuery.nonEmpty) QuerySimilarity.compute(previousChosenQuery.get.dimensions, query.dimensions) else null
   private val timeStatistics = state.getTimeStatistics
   private val numberOfPanes = state.numberOfPanes
 
@@ -82,7 +80,6 @@ case class DebugQueryStatistics(window: Window,
     "timeForScoreComputation" -> timeStatistics.getTimeForScoreComputation,
     "timeForChooseQueries" -> timeStatistics.getTimeForChooseQueries,
     "timeForQueryExecution" -> timeStatistics.getTimeForQueryExecution,
-    "previousQuerySimilarity" -> previousQuerySimilarity,
     "queriesInPane" -> state.getQueriesInPane(window.paneTime).size,
     "measures" -> query.measures.size,
     "numberOfAttributes" -> numberOfAttributes,

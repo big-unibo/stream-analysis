@@ -42,16 +42,13 @@ object ConfigurationUtils {
  * @param slideDuration the slide duration
  * @param numberOfWindowsToConsider the number of windows to consider in the simulation, optional
  * @param statisticsFile the statistics file where write the statistics about all the queries in the simulation
- * @param chosenQueryStatisticsFile the statistics file where write the statistics about the chosen query
  * @param datasetStatisticsFile the statistics file where write the statistics about the dataset
- * @param userPreferencesFile the user preferences file
  * @param availableTime the available time for the query execution
  */
 case class SimulationConfiguration(dataset: Dataset, windowDuration: Long, slideDuration: Long, numberOfWindowsToConsider: Option[Int],
                                    statisticsFile: String,
-                                   chosenQueryStatisticsFile: String,
                                    datasetStatisticsFile: String,
-                                   userPreferencesFile: String, availableTime: Long) {
+                                   availableTime: Long) {
   require(windowDuration > 0 && windowDuration % slideDuration == 0, "window duration must be greater than 0 and multiple of slide duration")
   val numberOfPanes : Int = (windowDuration / slideDuration).toInt
   val frequency: Double = math.floor(slideDuration.toDouble / availableTime)

@@ -1,12 +1,12 @@
 package it.unibo.big.window
 
-import it.unibo.big.kafka.consumer.KafkaDataSource
+import it.unibo.big.input.RecordModeling.Record
 
 /**
- * Utility object for compute a window in scala, without Spark support
+ * Utility object for compute a window in scala
  */
 object DataWindow {
-  import it.unibo.big.input.RecordModeling.{SchemaWithTimestamp, Window}
+  import it.unibo.big.input.RecordModeling.Window
   import org.slf4j.{Logger, LoggerFactory}
 
   import java.sql.Timestamp
@@ -23,8 +23,8 @@ object DataWindow {
    * @param windowEnd    if present is the simulation end time, otherwise end with the last instance in seq
    * @param numberOfWindowsToConsider if present is the number of windows to consider
    */
-  def windowing[T <: SchemaWithTimestamp](data: Iterator[T], windowDuration: Long, slideDuration: Long,
-                windowAction: (Window, (Seq[T], Seq[T], Seq[T]), Long) => Unit, windowStart: Option[Long], windowEnd: Option[Long], numberOfWindowsToConsider: Option[Int] = None): Unit = {
+  def windowing[T <: Record](data: Iterator[T], windowDuration: Long, slideDuration: Long,
+                             windowAction: (Window, (Seq[T], Seq[T], Seq[T]), Long) => Unit, windowStart: Option[Long], windowEnd: Option[Long], numberOfWindowsToConsider: Option[Int] = None): Unit = {
     require((windowDuration % slideDuration == 0) && slideDuration <= windowDuration)
     val dataset = data//.sortBy(x => (x.timestamp.getTime, x.value))
 
@@ -54,10 +54,7 @@ object DataWindow {
       windowDataPanes += paneD -> (windowDataPanes(paneD) :+ d)
     }
     LOGGER.info("Start iterating on data")
-    while((if(!dataset.isInstanceOf[KafkaDataSource]) dataset.hasNext else true) && !finishWithWindowEnd) {
-      if(dataset.isInstanceOf[KafkaDataSource] && !dataset.hasNext) {
-        LOGGER.info("Waiting for data")
-      } else {
+    while(dataset.hasNext && !finishWithWindowEnd) {
         val d = dataset.next()
         //define window end threshold if present
         if (windowEnd.nonEmpty) {
@@ -123,7 +120,6 @@ object DataWindow {
           numberOfWindows += 1
           windowAction(window.get, getDataFromWindow(window.get, slideDuration, windowDataPanes), windowTime + (slideDuration * windowIt))
         }
-      }
     }
   }
 
@@ -134,7 +130,7 @@ object DataWindow {
    * @param windowDataPanes panes data of the window
    * @return 3 sets for the window, one regarding all the window, one the newest data and one the last pane
    */
-  private def getDataFromWindow[T <: SchemaWithTimestamp](window: Window, slideDuration: Long, windowDataPanes: Map[Long, Seq[T]]): (Seq[T], Seq[T], Seq[T]) = {
+  private def getDataFromWindow[T <: Record](window: Window, slideDuration: Long, windowDataPanes: Map[Long, Seq[T]]): (Seq[T], Seq[T], Seq[T]) = {
     val windowData = windowDataPanes.filterKeys(window.contains).values.flatten.toSeq
     val newData = if(window.isFirstCompleteWindow) windowData else windowDataPanes.getOrElse(window.end.getTime - slideDuration, Seq())
     val oldPaneData = windowDataPanes.getOrElse(window.start.getTime - slideDuration, Seq())

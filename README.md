@@ -5,5 +5,3 @@
 ## Multi-project gradle structure
     simulator/   -- generator of stream data
     dataconsumer/  -- stream analysis algorithms implementations
-    kafka-docker/ -- kafka docker container
-    delivery/ -- delivery of the project APIs for the final web application

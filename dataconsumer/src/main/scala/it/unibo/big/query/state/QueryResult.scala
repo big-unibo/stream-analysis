@@ -37,12 +37,6 @@ abstract class QueryResult(timestamp: Long, private var dataTmp: Seq[Record]) {
 
   /**
    *
-   * @return most used schema in the gf
-   */
-  def seedName: String = data.map(s => s.seedName -> 1).groupBy(_._1).maxBy(_._2.size)._1
-
-  /**
-   *
    * @return records that are active in the query result, for debug the result
    */
   def data: Seq[Record] = dataTmp

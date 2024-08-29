@@ -28,7 +28,7 @@ object DebugWriter {
    */
   def writeStatistics(simulationConfiguration: SimulationConfiguration, state: State, selectedQuery: Option[GPQuery], window: Window, totalTime: Long, previousChosenQuery: Option[GPQuery], data: Seq[Record], numberOfQueriesToExecute: Int): Unit = {
     LOGGER.debug(s"Writing statistics for ${state.configuration}")
-    val numberOfAttributes = data.flatMap(_.values.keySet).distinct.size
+    val numberOfAttributes = data.flatMap(_.data.keySet).distinct.size
     val queriesWithTotalScore: QueriesWithStatistics = state.getQueries(window.paneTime)
     //write file statistics
     val statistics: Seq[DebugQueryStatistics] = queriesWithTotalScore.map {
@@ -47,24 +47,6 @@ object DebugWriter {
     }.toSeq
 
     FileWriter.writeFileWithHeader(statistics.map(_.toSeq), statistics.headOption.map(_.header).getOrElse(Seq()), simulationConfiguration.statisticsFile)
-  }
-
-  def writeChosenQueryStatistics(simulationConfiguration: SimulationConfiguration, lastPaneStatistics: LastPaneStatistics,
-                                 window: Window, gfExecution: State,
-                                 gfNaive: State, naiveQuery: (GPQuery, QueryStatisticsInPane), chosenQuery: GPQuery, numberOfQueriesToExecute: Int): Unit = {
-
-    val statistics = ChosenQueryStatistics(
-      window = window,
-      state = gfExecution,
-      gfNaive = gfNaive,
-      naiveQuery = naiveQuery,
-      query = chosenQuery,
-      simulationConfiguration = simulationConfiguration,
-      lastPaneStatistics = lastPaneStatistics,
-      numberOfQueriesToExecute = numberOfQueriesToExecute
-    )
-
-    FileWriter.writeFileWithHeader(Seq(statistics.toSeq), statistics.header, simulationConfiguration.chosenQueryStatisticsFile)
   }
 
   /**

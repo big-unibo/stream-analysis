@@ -4,7 +4,6 @@ import it.unibo.big.input.{AlgorithmConfiguration, ConfigurationSetting, NaiveCo
 import it.unibo.big.input.DataDefinition.{NullData, NumericData, StringData}
 import it.unibo.big.input.GPSJConcepts.GPQuery
 import it.unibo.big.input.RecordModeling.Record
-import it.unibo.big.input.UserPreferences.parseUserPreferences
 import it.unibo.big.query.algorithm.QueryUpdate
 import it.unibo.big.query.algorithm.naive.NaiveQueriesExecutor
 import it.unibo.big.query.app.DatasetsUtils.Dataset
@@ -26,7 +25,7 @@ object WindowedQueryExecution {
    * @param data the data
    * @return the support of the dimensions
    */
-  def getDimensionsSupport(data: Seq[Record]): Map[String, Double] = {
+  private def getDimensionsSupport(data: Seq[Record]): Map[String, Double] = {
     data.flatMap(d => d.dimensions.map(dim => {
       dim -> (if (getDataAsNullValue(d, dim) != NullData) 1 else 0)
     }).toSeq).groupBy(_._1).map {
@@ -57,24 +56,17 @@ object WindowedQueryExecution {
     val states = configurations.map{
       case (sett, (n, configurations)) => (sett, (if(n.isDefined) Some(State(Map(), n.get)) else None, configurations.map(c => c -> State(Map(), c)).toMap))
     }
-    var userPreferences = parseUserPreferences(simulationConfiguration.userPreferencesFile)
 
     LOGGER.info(s"Window duration = ${simulationConfiguration.windowDuration} slide duration = ${simulationConfiguration.slideDuration}")
     windowing[Record](data, simulationConfiguration.windowDuration, simulationConfiguration.slideDuration, (window, data, _) => {
       val newPaneData = data._2
       val windowData = data._1
       val previousPaneData = data._3
-      //consider the user preferences defined in the previous iteration
-      val paneUserPreferences = userPreferences
 
       //info application statistics
       val dataDimensions = getDimensionsSupport(newPaneData)
       val dimensions = dataDimensions.keySet
       val measures = newPaneData.flatMap(_.measures).toSet.diff(dimensions)
-
-      //The user can change the dimensions of interest by excluding or including some of them
-      userPreferences = parseUserPreferences(simulationConfiguration.userPreferencesFile)
-
       dataDimensions.foreach{
         case (d, s) =>
           LOGGER.info(s"Dimension $d with support $s")
@@ -87,7 +79,7 @@ object WindowedQueryExecution {
           val naiveConfiguration = gfsNaive.map(_.configuration)
           if(naiveConfiguration.nonEmpty) {
             try {
-              naiveSelectedQuery = NaiveQueriesExecutor.apply(simulationConfiguration, setState(gfsNaive, gfsMap, naiveConfiguration.get), newPaneData, window, paneUserPreferences, dimensions, measures)
+              naiveSelectedQuery = NaiveQueriesExecutor.apply(simulationConfiguration, setState(gfsNaive, gfsMap, naiveConfiguration.get), newPaneData, window, dimensions, measures)
             } catch {
               case e: Exception =>
                 LOGGER.error(s"Error in naive algorithm", e)
@@ -109,7 +101,7 @@ object WindowedQueryExecution {
           gfsMap.foreach {
             case (c, gfs) =>
               try {
-                val (newQuery, executedQueries) = QueryUpdate.updateQuery(simulationConfiguration, setState(gfsNaive, gfsMap, c), newPaneData, window, paneUserPreferences, dimensions, measures, writeDebug = true)
+                val (newQuery, executedQueries) = QueryUpdate.updateQuery(simulationConfiguration, setState(gfsNaive, gfsMap, c), newPaneData, window, dimensions, measures, writeDebug = true)
                 if (newQuery.isDefined) {
                   val (result, queryPanesSupport) = gfs.compute(window, newQuery.get)
                   LOGGER.info(s"[QUERY ${newQuery.get.dimensions}] $queryPanesSupport % panes with query config = $c")
@@ -134,9 +126,6 @@ object WindowedQueryExecution {
                   //write a csv file with the result of the query of the algorithm in the window
                   // FileWriter.writeFileWithHeader(resultRecords, keys, s"debug/analysis/results/results_${c.name}_${window.paneTime}.csv")
                   //}
-                  if (naiveSelectedQuery.isDefined) {
-                    DebugWriter.writeChosenQueryStatistics(simulationConfiguration, lastPaneStatistics, window, gfs, gfsNaive.get, naiveSelectedQuery.get, newQuery.get, executedQueries)
-                  }
                   DebugWriter.writeDatasetStatistics(window, dataDimensions, if (naiveSelectedQuery.isDefined) Some(lastPaneStatistics._2) else None, simulationConfiguration)
                 }
               } catch {
@@ -171,9 +160,7 @@ object WindowedQueryExecution {
       slideDuration = slideDuration,
       numberOfWindowsToConsider = Some(numberOfWindowsToConsider),
       statisticsFile = s"${path}stats.csv",
-      chosenQueryStatisticsFile = s"${path}stats_chosen_query.csv",
       datasetStatisticsFile = s"${path}stats_dataset.csv",
-      userPreferencesFile = "debug/analysis/user_preferences.csv",
       availableTime = availableTime
     )
     /*

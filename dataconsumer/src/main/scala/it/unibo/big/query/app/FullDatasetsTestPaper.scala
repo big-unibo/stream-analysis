@@ -90,9 +90,7 @@ object TestDemo extends App {
     .map(sc => ExecutionConfiguration(alpha = 0.5, groupBySet = 2, maxRecordsStatePercentage = Set(sc), maxRecordsQueries = sc, algorithms = Set(ASKE))).toSeq ++
     Seq(ExecutionConfiguration(alpha = 0.5, groupBySet = 2, maxRecordsStatePercentage = Set(0.05), maxRecordsQueries = 0.05, algorithms = Set(ASE, AS1, Naive)))
 
-  private val datasets = syntheticDatasets ++ realDatasets
-
-  FullDatasetsTestPaper(alphasConfigurations ++ groupByConfigurations ++ stateCapacityConfigurations, datasets)
+  FullDatasetsTestPaper(alphasConfigurations ++ groupByConfigurations ++ stateCapacityConfigurations, syntheticDatasets)
 
   FullDatasetsTestPaper(Seq(ExecutionConfiguration(
     alpha = 0.5,
@@ -100,7 +98,7 @@ object TestDemo extends App {
     maxRecordsStatePercentage = Set(),
     maxRecordsQueries = 1,
     algorithms = Set(Naive)
-  )), numberOfWindowsToConsider = _ => 3, datasets = datasets)
+  )), numberOfWindowsToConsider = _ => 3, datasets = syntheticDatasets)
 
   //knapsack tests
   FullDatasetsTestPaper(Seq(ExecutionConfiguration(

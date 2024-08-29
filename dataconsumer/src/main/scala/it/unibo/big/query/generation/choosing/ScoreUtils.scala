@@ -93,7 +93,7 @@ object ScoreUtils {
      * @param lastPaneWeight the weight of the last pane
      * @return the weighted value considering the last pane
      */
-    def getWeightedValuesForLastPane(values: Map[Long, Double], paneTime: Long, lastPaneWeight : Double = 0.5): Double = {
+    private def getWeightedValuesForLastPane(values: Map[Long, Double], paneTime: Long, lastPaneWeight : Double = 0.5): Double = {
       val otherPanes = values.filterKeys(_ != paneTime)
       val lastPaneValue = if(otherPanes.isEmpty) 0D else util.Try(otherPanes.values.sum / otherPanes.size).toOption.getOrElse(0D)
       lastPaneWeight * values.getOrElse(paneTime, 0D) + (1 - lastPaneWeight) * lastPaneValue

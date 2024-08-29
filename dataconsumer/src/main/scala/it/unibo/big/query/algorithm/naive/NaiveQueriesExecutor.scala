@@ -3,7 +3,6 @@ package it.unibo.big.query.algorithm.naive
 import it.unibo.big.input.GPSJConcepts.GPQuery
 import it.unibo.big.input.RecordModeling.{Record, Window}
 import it.unibo.big.input.SimulationConfiguration
-import it.unibo.big.input.UserPreferences.UserPreferences
 import it.unibo.big.query.debug.DebugWriter
 import it.unibo.big.query.execution.QueryExecution.executeQuery
 import it.unibo.big.query.generation.QueryUtils._
@@ -20,17 +19,16 @@ object NaiveQueriesExecutor {
    * @param algorithmState the algorithm state
    * @param data the data in the pane
    * @param window the window
-   * @param userPreferences the user preferences
    * @param dimensions the dimensions of the data
    * @param measures the measures of the data
    * @return (if present) the new selected query with the score
    */
-  def apply(simulationConfiguration: SimulationConfiguration, algorithmState: State, data: Seq[Record], window: Window, userPreferences: UserPreferences,
+  def apply(simulationConfiguration: SimulationConfiguration, algorithmState: State, data: Seq[Record], window: Window,
             dimensions: Set[String], measures: Set[String]): Option[(GPQuery, QueryStatisticsInPane)] = {
     val previousSelectedQuery = algorithmState.update(window)
     val startTime = System.currentTimeMillis()
     val configuration = algorithmState.configuration
-    updateQueriesStatistics(data, algorithmState, previousSelectedQuery, userPreferences, window.paneTime, dimensions, measures, simulationConfiguration)
+    updateQueriesStatistics(data, algorithmState, previousSelectedQuery, window.paneTime, dimensions, measures, simulationConfiguration)
     val queriesWithSOP = algorithmState.getQueries(window.paneTime).filter(_._2.exists)
     LOGGER.info(s"[NAIVE EXECUTING] Executing queries: ${queriesWithSOP.size}), input query: ${previousSelectedQuery.map(_.dimensions.mkString(","))}")
     var availableTime = simulationConfiguration.availableTime - (startTime - System.currentTimeMillis())

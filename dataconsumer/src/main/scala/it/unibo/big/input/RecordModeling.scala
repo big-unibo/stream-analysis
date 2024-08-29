@@ -1,31 +1,7 @@
 package it.unibo.big.input
 
-import it.unibo.big.query.app.DatasetsUtils.Dataset
-
 object RecordModeling {
   import java.sql.Timestamp
-
-  /**
-   * The schema trait
-   */
-  trait Schema {
-    /**
-     * Name of the seed that have generated the schema
-     */
-    val seedName: String
-    /**
-     * Schema values
-     */
-    val values: Map[String, Double]
-
-    /**
-     *
-     * @return the values of the schema in a particular formatted string "[a:prob, b:prob, c:prob]"
-     */
-    lazy val value: String = s"[${values.map{
-      case (k, v) => s"$k:${"%.2f".format(v)}"
-    }.mkString(",")}]"
-  }
 
   /**
    * Window definition
@@ -42,7 +18,7 @@ object RecordModeling {
      * @param schema a timestamped schema
      * @return an option that tells the pane start of that schema, if the schema is in that window
      */
-    def paneStart(schema: SchemaWithTimestamp): Option[Long] = {
+    def paneStart(schema: Record): Option[Long] = {
       val t = schema.timestamp.getTime
       if (!contains(t)) {
         None
@@ -96,15 +72,14 @@ object RecordModeling {
     def length: Long = end.getTime - start.getTime
   }
 
-  abstract class SchemaWithTimestamp extends Schema {
-    val timestamp: Timestamp
-  }
-
   import DataDefinition.{Data, NumericData, StringData}
 
-  case class Record(data: Map[String, Data[_]], timestamp: Timestamp, seedName: String) extends SchemaWithTimestamp {
-    override val values: Map[String, Double] = data.keys.map(s => s -> 1D).toMap
-    private var datasetTmp: Option[Dataset] = None
+  case class Record(data: Map[String, Data[_]], timestamp: Timestamp) {
+
+    /**
+     * The schema of the record
+     */
+    val schema: String = data.keys.toList.sorted.mkString(",")
     /**
      *
      * @return the data of the schema that is are string
@@ -122,12 +97,5 @@ object RecordModeling {
     }.toSet
 
     require(dimensions.intersect(measures).isEmpty, "The dimensions and measures must be disjoint")
-
-    def setDataset(dataset: Dataset): Record = {
-      datasetTmp = Some(dataset)
-      this
-    }
-
-    def dataset: Option[Dataset] = datasetTmp
   }
 }

@@ -23,7 +23,7 @@ def from_log_factor_to_percentage(log_factor, pane_records):
     except (OverflowError, ValueError):
         return float('inf')
 
-def get_complete_stats_dataframe(process_df, datasets = ["synthetic", "welaser", "bitbang"]):
+def get_complete_stats_dataframe(process_df, datasets = ["synthetic"]):
     dataframes = []
     #process the complete stats dataframe with the given function and concat all the dataframes
     def processing_function(base, base_dir):
@@ -35,10 +35,6 @@ def get_complete_stats_dataframe(process_df, datasets = ["synthetic", "welaser",
 
     df = pd.concat(dataframes, ignore_index=True)
 
-    #concatane bitbang datasets
-    max_time_bitbang = df.loc[df["inputFile"].str.endswith("D_real_1.csv"), "time"].max() + 1
-    df["time"] = df.apply(lambda row: row["time"] + max_time_bitbang if row["inputFile"].endswith("D_real_2.csv") else row["time"], axis = 1)
-    df.loc[df["dataset"] == "$D_{{real}_2}$", "inputFile"] = "D_real_2.csv"
     #filter out when $D_{syn-k}$ and time > 10, keep the other datasets
     df = df[~((df["dataset"] == "$D_{syn-k}$") & (df["time"] > 10))]
     return df
@@ -211,10 +207,6 @@ def get_dataset(input_file, input_folder):
         # make a case selection on the dataset
         if "synthetic" in dataset:
             return "$D_{syn}$"
-        elif "welaser" in dataset:
-            return "$D_{{real}_1}$"
-        elif "bitbang" in dataset:
-            return "$D_{{real}_2}$"
 
 def get_stats_df(input_folder = get_input_folder()):
     """
@@ -288,7 +280,7 @@ def process_directory(path, base, function, file_name):
     else:
         print(f"No subdirectories found in {path} with {file_name}.")
 
-def get_queries_statistics_by_time(process_df, grouping_columns, datasets = ["synthetic", "welaser", "bitbang"]):
+def get_queries_statistics_by_time(process_df, grouping_columns, datasets = ["synthetic"]):
     """
     Get the statistics of queries executed by time. Considering executed, selected and total queries
     """

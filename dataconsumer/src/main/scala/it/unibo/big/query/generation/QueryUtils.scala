@@ -3,7 +3,6 @@ package it.unibo.big.query.generation
 import it.unibo.big.input.GPSJConcepts.Operators.MeasureOperator.aggregationFunctions
 import it.unibo.big.input.GPSJConcepts.{Aggregation, GPQuery, Projection}
 import it.unibo.big.input.RecordModeling.Record
-import it.unibo.big.input.UserPreferences.UserPreferences
 import it.unibo.big.input.{AlgorithmConfiguration, NaiveConfiguration, SimulationConfiguration}
 import it.unibo.big.query.generation.choosing.ScoreUtils.{AssignmentScore, DimensionScore, Score}
 import it.unibo.big.query.generation.countdistinct.DimensionStatistics.{DimensionStatistic, DimensionVsDimensionStatistic}
@@ -31,19 +30,17 @@ object QueryUtils {
 
   /**
    * Get the number of estimatedRecords of a query, using the cardenas formula (if needed)
-   * @param threshold the threshold for functional dependencies
-   * @param query the query
-   * @param dimensionsStatistics the dimensions statistics
-   * @param data the data
+   * @param query                          the query
+   * @param dimensionsStatistics           the dimensions statistics
+   * @param data                           the data
    * @param dimensionVsDimensionStatistics the dimensions vs dimensions statistics
-   * @param conf the configuration
+   * @param conf                           the configuration
    * @return the number of estimatedRecords estimated
    */
-  private def getEstimatedNumberOfRecords(threshold : Double, query: GPQuery, dimensionsStatistics: Map[String, DimensionStatistic], data: Seq[Record],
-                                          dimensionVsDimensionStatistics: Map[(String, String), DimensionVsDimensionStatistic], conf: AlgorithmConfiguration): Long = {
+  private def getEstimatedNumberOfRecords(query: GPQuery, dimensionsStatistics: Map[String, DimensionStatistic], data: Seq[Record], dimensionVsDimensionStatistics: Map[(String, String), DimensionVsDimensionStatistic], conf: AlgorithmConfiguration): Long = {
     var dimensions = query.dimensions
     val dimensionsFd = dimensions.flatMap(d1 => dimensions.collect{
-      case d2 if d1 < d2 && dimensionVsDimensionStatistics((d1, d2)).functionalDependencyScore.getOrElse(0D) >= threshold =>
+      case d2 if d1 < d2 && dimensionVsDimensionStatistics((d1, d2)).functionalDependencyScore.getOrElse(0D) >= 1.0 =>
         val cd1 = dimensionsStatistics(d1).countD
         val cd2 = dimensionsStatistics(d2).countD
         (d1, d2) -> (if(cd1 > cd2) d1 else d2)
@@ -115,14 +112,13 @@ object QueryUtils {
    * @param data the data
    * @param algorithmState the algorithm state
    * @param inputQuery the input query, if present
-   * @param userPreferences the user preferences
    * @param paneTime the time of the pane
    * @param dimensions the dimensions of the data
    * @param measures the measures of the data
    * @param simulationConfiguration the simulation configuration
    * @return the the map of queries with SOP
    */
-  def updateQueriesStatistics(data: Seq[Record], algorithmState: State, inputQuery: Option[GPQuery], userPreferences: UserPreferences, paneTime: Long, dimensions: Set[String], measures: Set[String], simulationConfiguration: SimulationConfiguration): Unit = {
+  def updateQueriesStatistics(data: Seq[Record], algorithmState: State, inputQuery: Option[GPQuery], paneTime: Long, dimensions: Set[String], measures: Set[String], simulationConfiguration: SimulationConfiguration): Unit = {
     val startTime = System.currentTimeMillis()
     val configuration = algorithmState.configuration
     val calculateStatisticsJustForInputQuery = configuration.isInstanceOf[NaiveConfiguration] && configuration.percentageOfRecordsInQueryResults == 1D
@@ -142,9 +138,6 @@ object QueryUtils {
       //if the pair is in the query and not in the dependencies I need to filter the query out
       .filter(dimensions => if(calculateStatisticsJustForInputQuery) true else dimensions.forall(d1 => dimensions.filter(_ > d1).forall(d2 => dimensionVsDimensionStatistics.contains((d1, d2)))))
       //filter based on exclude/include dimensions
-      .filter(dimensions => (
-        if(userPreferences.includeDimensions.nonEmpty) dimensions.exists(userPreferences.includeDimensions.contains) else true) &&
-        !dimensions.forall(d => userPreferences.excludeDimensions.contains(d)))
       .map(c => GPQuery(c.map(d => Projection(d)).toSet, queryAggregation))
     LOGGER.debug(s"Time to generate combinations: ${System.currentTimeMillis() - time}")
 
@@ -193,12 +186,12 @@ object QueryUtils {
    * @param dimensionsStatistics the dimensions statistics
    * @param combinations the combinations of the queries that can be executed
    * @param dimensionVsDimensionStatistics the dimensions vs dimensions statistics
-   * @return the queries with the estimated number of records, filtered by the maximum number of estimatedRecords (if present) and considering the user preferences
+   * @return the queries with the estimated number of records, filtered by the maximum number of estimatedRecords (if present)
    */
   private def getFilteredQueriesWithEstimatedNumberOfRecords(data: Seq[Record], configuration: AlgorithmConfiguration,
                                                              dimensionsStatistics: Map[String, DimensionStatistic], combinations: Seq[GPQuery],
                                                              dimensionVsDimensionStatistics : Map[(String, String), DimensionVsDimensionStatistic]): Map[GPQuery, Long] = {
-    combinations.map(q => q -> getEstimatedNumberOfRecords(threshold = 1D, q, dimensionsStatistics, data, dimensionVsDimensionStatistics, configuration)).toMap
+    combinations.map(q => q -> getEstimatedNumberOfRecords(q, dimensionsStatistics, data, dimensionVsDimensionStatistics, configuration)).toMap
   }
 
   /**
