@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.[cC][mM][dD] text eol=crlf
+*.[bB][aA][tT] text eol=crlf
+*.[pP][sS]1 text eol=crlf
+simulator/src/main/resources/bitbang_v1.csv filter=lfs diff=lfs merge=lfs -text
+simulator/src/main/resources/bitbang_v2.csv filter=lfs diff=lfs merge=lfs -text
+simulator/src/main/resources/welaser_v1.csv filter=lfs diff=lfs merge=lfs -text

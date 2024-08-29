@@ -1,0 +1,18 @@
+FROM openjdk:8-jdk-slim
+
+WORKDIR /app
+
+COPY gradlew /app/gradlew
+COPY gradle /app/gradle
+COPY build.gradle /app/build.gradle
+COPY settings.gradle /app/settings.gradle
+COPY gradle.properties /app/gradle.properties
+COPY config/ /app/config
+COPY dataconsumer/ /app/dataconsumer
+
+RUN chmod +x gradlew
+RUN ./gradlew dataconsumer:shadowJar --no-daemon -Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false
+#expose port
+EXPOSE 8084
+
+CMD ["java", "-cp", "dataconsumer/build/libs/dataconsumer-0.1-all.jar", "it.unibo.big.query.app.LaunchServer"]

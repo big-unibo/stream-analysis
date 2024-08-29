@@ -1,0 +1,3 @@
+rootProject.name = "streaming-analysis"
+include 'simulator'
+include 'dataconsumer'
