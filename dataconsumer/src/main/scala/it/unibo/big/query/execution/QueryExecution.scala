@@ -39,7 +39,9 @@ object QueryExecution {
     algorithmState.getTimeStatistics.addTimeForChooseQueries(System.currentTimeMillis() - time)
     val usedTime = queriesStatisticsTime + AVAILABLE_TIME_EXTRA
     val availableTime = simulationConfiguration.availableTime - usedTime
-    val numberOfQueriesToExecuteTmp = math.max(math.floor(availableTime / configuration.timeForQueryComputation(simulationConfiguration, configuration.pattern.numberOfDimensions, availableTime)).toInt, 0)
+    val timeForQueryComputation = configuration.timeForQueryComputation(simulationConfiguration, configuration.pattern.numberOfDimensions, availableTime)
+    //subtract a query computation time for knapsack execution
+    val numberOfQueriesToExecuteTmp = math.max(math.floor((availableTime - (if(configuration.knapsack.nonEmpty) timeForQueryComputation else 0L)) / timeForQueryComputation).toInt, 0)
     val numberOfQueriesToExecute = if(configuration.singleQuery) math.min(numberOfQueriesToExecuteTmp, 1) else numberOfQueriesToExecuteTmp
     if(numberOfQueriesToExecute <= 0) {
       LOGGER.error(s"Number of queries to execute must be greater than 0, " +
@@ -54,7 +56,7 @@ object QueryExecution {
     val queriesToExecute = if(configuration.knapsack.nonEmpty) {
       LOGGER.info(s"Using knapsack to choose queries $configuration")
       val startKnapsackTime = System.currentTimeMillis()
-      val queriesToExecute = Knapsack.apply(sortedQueries, maxNumberOfRecords, configuration, numberOfQueriesToExecute,  timeForQueryComputation)
+      val queriesToExecute = Knapsack.apply(sortedQueries, maxNumberOfRecords, configuration, numberOfQueriesToExecute, timeForQueryComputation)
       LOGGER.info(s"Queries selected by knapsack: ${queriesToExecute.size}/$numberOfQueriesToExecute")
       //sort the queries considering the knapsack selection
       val queriesToExecuteSorted = sortQueries(queries, q => if(queriesToExecute.contains(q)) 0 else 1)
