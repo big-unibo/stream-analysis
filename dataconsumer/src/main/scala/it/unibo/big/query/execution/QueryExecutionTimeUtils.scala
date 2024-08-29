@@ -1,7 +1,7 @@
 package it.unibo.big.query.execution
 
 import it.unibo.big.input.SimulationConfiguration
-import it.unibo.big.query.app.DatasetsUtils.{BitBang, SyntheticDataset, Technogym, WeLaser}
+import it.unibo.big.query.app.DatasetsUtils.{BitBang, SyntheticDataset, WeLaser}
 
 object QueryExecutionTimeUtils {
   import com.typesafe.config.{Config, ConfigFactory}
@@ -18,7 +18,6 @@ object QueryExecutionTimeUtils {
       case d if d.isInstanceOf[SyntheticDataset] => "SyntheticDataset"
       case d if d.isInstanceOf[BitBang] => "BitBang"
       case d if d.isInstanceOf[WeLaser] => "WeLaser"
-      case d if d.isInstanceOf[Technogym] => "Technogym"
     }
     val datasetConfiguration = config.getConfig(s"simulation.datasets.$datasetName")
     val executionTimes = datasetConfiguration.getConfigList("executionTimes")

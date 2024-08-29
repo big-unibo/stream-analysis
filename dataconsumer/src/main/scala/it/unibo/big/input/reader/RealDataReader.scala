@@ -4,7 +4,7 @@ import com.google.common.base.Splitter
 import it.unibo.big.input.DataDefinition
 import it.unibo.big.input.DataDefinition._
 import it.unibo.big.input.RecordModeling.Record
-import it.unibo.big.query.app.DatasetsUtils.{AgriRobot, BitBang, BitBang1, BitBang2, DailyMovments, RealDataset, Technogym}
+import it.unibo.big.query.app.DatasetsUtils.{AgriRobot, BitBang, BitBang1, BitBang2, RealDataset}
 import it.unibo.big.utils.FileReader
 import it.unibo.big.utils.FileReader.MyConverter
 import org.slf4j.{Logger, LoggerFactory}
@@ -58,28 +58,6 @@ object RealDataReader {
           })
         })
       dataset match {
-        case _: Technogym =>
-          dataValues = dataValues
-          /* consider to filter measures
-          ManualLifeStyleDuration
-          LowerWeight
-          UpperWeight
-          ManualPlayTime
-          ManualTrainingCalories
-          ManualTrainingDuration
-          Weight
-          ManualFreeTime
-          ManualLifeStyleMove
-          ManualRunTime
-          ManualTrainingDistance
-          PartitionDate
-          CoreWeight
-          ManualLifeStyleCalories
-          ManualTrainingMove
-          CyclingDistance
-          RunningDistance
-          These are the distinct variables
-           */
         case AgriRobot =>
           dataValues = dataValues.filterKeys(x => !x.contains("serviceProvided"))
             .filterKeys(x => !Seq("warnings", "cmdList", "refRobotModel", "infos", "domain",
@@ -112,15 +90,6 @@ object RealDataReader {
           LOGGER.debug(s"not change this dataset $dataset")
       }
 
-      if(dataset == DailyMovments) {
-        //force measures in daily movement dataset
-        val measuresToBeDimensions = Seq("WeightLifted", "ManualLifeStyleDuration", "CoreWeightLifted", "LowerWeightLifted")
-        dataValues = dataValues.map {
-          case (x, data) if measuresToBeDimensions.contains(x) =>
-            x -> StringData(data.value.toString).asInstanceOf[Data[_]]
-          case (x, data) => x -> data
-        }.toMap
-      }
       val foundTime = false
       //code for get the timekey from data
       /*if (dataValues.contains(dataset.timeKey)) {

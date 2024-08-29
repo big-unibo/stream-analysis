@@ -100,7 +100,7 @@ object TestDemo extends App {
     maxRecordsStatePercentage = Set(),
     maxRecordsQueries = 1,
     algorithms = Set(Naive)
-  )), numberOfWindowsToConsider = d => if(d == ManualActivities) 1 else 3, datasets = datasets.filter(_ != ManualActivities))
+  )), numberOfWindowsToConsider = _ => 3, datasets = datasets)
 
   //knapsack tests
   FullDatasetsTestPaper(Seq(ExecutionConfiguration(
