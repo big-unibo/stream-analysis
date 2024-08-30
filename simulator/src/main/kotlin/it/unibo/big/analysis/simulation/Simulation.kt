@@ -80,17 +80,17 @@ fun getSyntheticRecord(
         it.name to (1..dimensionNumberOfValues[it.name]!!).map { i -> i to "${it.name}-${i}" }
     }
 
-    val dimensionsProbabilities = config.getDimensions().map { dimensionConfig ->
+    val dimensionsProbabilities = config.getDimensions().associate { dimensionConfig ->
         dimensionConfig.name to Triple(
             dimensionConfig,
             Random.nextDouble() <= dimensionConfig.behavior.getProbability(elapsedTime),
             Random.nextInt(dimensionNumberOfValues[dimensionConfig.name]!!)
         )
-    }.toMap()
+    }
 
-    val measuresProbabilities = config.measures.map { measureConfig ->
-        measureConfig to (Random.nextDouble() <= measureConfig.behavior.getProbability(elapsedTime))
-    }.toMap()
+    val measuresProbabilities = config.measures.associateWith { measureConfig ->
+        (Random.nextDouble() <= measureConfig.behavior.getProbability(elapsedTime))
+    }
 
     // Generate the JSON data starting from the probabilities
     val jsonData: Map<String, Comparable<*>?> = dimensionsProbabilities.mapValues { (dim, value) ->

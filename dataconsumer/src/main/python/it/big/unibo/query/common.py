@@ -89,31 +89,6 @@ def get_algorithm_string(row):
     #from a row with algorithm column return a string with the configuration
     return "N" if row["isNaive"] else f"sp={row['state_records_percentage']:.3f}_kn={row['knapsack']}_s={row['single']}"
 
-def format_score_exploded(row):
-    if pd.isna(row['SOPFd']) and pd.isna(row['SOPSupport']):
-        return None
-    return f"alpha={row['alpha']}({row['SOPSupport']:.2f}),beta={row['beta']}({row['SOPFd']:.2f})"
-def format_records_est_and_real(row):
-    if pd.isna(row['lastPaneEstRecords']) and pd.isna(row['lastPaneRealRecords']) and row['executed'] == False:
-        return None
-    return f"Est({row['lastPaneEstRecords']}),Real({row['lastPaneRealRecords']}),Diff({(row['lastPaneEstRecords'] - row['lastPaneRealRecords'])})"
-
-def format_score(row):
-    if row['selected'] and row['stored']:
-        return f"SE({row['SOP']:.2f})"
-    elif row['stored']:
-        return f"E({row['SOP']:.2f})"
-    elif row['selected'] and row['executed']:
-        return f"Se({row['SOP']:.2f})"
-    elif row['executed']:
-        return f"e({row['SOP']:.2f})"
-    elif row['selected']:
-        return f"S({row['SOP']:.2f})"
-    elif pd.isna(row['SOP']):
-        return None
-    else:
-        return f"N({row['SOP']:.2f})"
-
 def format_selection(row):
     if row['selected'] and row['stored']:
         return "SE"
@@ -215,26 +190,11 @@ def get_stats_df(input_folder = get_input_folder()):
     df = get_df("stats", input_folder)
     df["state_records_percentage"] = df.apply(lambda row: from_log_factor_to_percentage(row['logFactor'], row['slideDuration']), axis=1)
     # Apply the function to create the 'info' column
-    df['score_info'] = df.apply(format_score, axis=1)
     df['selection'] = df.apply(format_selection, axis=1)
-    df['score_extended_info'] = df.apply(format_score_exploded, axis=1)
-    df['records_info'] = df.apply(format_records_est_and_real, axis=1)
-    #calculate the difference between the estimated records and the real records
-    df['records_diff'] = abs(df['lastPaneEstRecords'] - df['lastPaneRealRecords'])
-    #calculate the difference percentage between the estimated records and the real records
-    df['records_diff_percentage'] = (df['records_diff'] / df['lastPaneRealRecords'])
     df['algorithm'] = df.apply(lambda row: get_algorithm_string(row), axis=1)
     df['inputFile'] = df.apply(lambda row: get_reduced_in(row), axis=1)
     df['simulation'] = df.apply(lambda row: get_simulation_string(row), axis=1)
     df["dataset"] = df["inputFile"].apply(lambda x: get_dataset(x, input_folder))
-    return df
-
-def get_chosen_query_df(input_folder = get_input_folder()):
-    """
-    Read the stats_chosen_query.csv file and return the DataFrame.
-    """
-    df = get_df("stats_chosen_query", input_folder)
-    df["state_records_percentage"] = df.apply(lambda row: from_log_factor_to_percentage(row['logFactor'], row['slideDuration']), axis=1)
     return df
 
 def calculate_mean(number_string):
@@ -253,10 +213,10 @@ def get_path_to_store_results():
     """
     Get the path to store the results.
     """
-    return f"debug/analysis/{get_input_folder()}"
+    return f"test/{get_input_folder()}"
 
 base_dir = r"./dataconsumer/src/main/python/it/big/unibo/query"
-base_path = r"./debug/analysis/"
+base_path = r"./test/"
 
 def process_directory(path, base, function, file_name):
     # List all entries in the directory
@@ -346,57 +306,6 @@ def set_font():
                 "font.family": "serif",  # Change this as per your preference
                 "font.size": font_size
         })
-
-def plot(df, measures, detail, x, graph_lines, x_label, lines_label, markers = {}, line_styles = {}, colors = {}, measures_labels = None):
-    if measures_labels is None:
-        measures_labels = measures
-    set_font()
-    # Generate default colors dynamically based on unique labels in 'v'
-    unique_labels = df[graph_lines].unique()
-    default_colors = {label: plt.cm.tab10(i) for i, label in enumerate(unique_labels)}
-    for d in df[detail].unique():
-        df_reduced = df[df[detail] == d]
-        df_reduced = df_reduced.sort_values(by=x)
-        for m in measures:
-            #fillna values with 0
-            df_reduced[m].fillna(0, inplace=True)
-        plt.clf()
-        nrows = 2 if len(measures) > 2 else 1
-        ncols = int(len(measures)/nrows)
-        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(7 * ncols, 6 * nrows))
-        #fig.suptitle(d)
-        handles = []
-        labels = []
-        seen_labels = {}
-        for row in range(nrows):
-            for col in range(ncols):
-                i = row * ncols + col
-                ax = axes[row, col] if len(measures) > 1 else axes
-                m = measures[i]
-                measure_label = measures_labels[i]
-                for v in df_reduced[graph_lines].unique():
-                    subset = df_reduced[df_reduced[graph_lines] == v]
-                    line, = ax.plot(subset[x], subset[m], marker = markers.get(v, 'o'), linestyle= line_styles.get(v, '-'), label=v, color = colors.get(v, default_colors[v]))
-                    # Collect handles and labels for legend, avoiding duplicates
-                    if v not in seen_labels:
-                        handles.append(line)
-                        labels.append(v)
-                        seen_labels[v] = 1
-                ax.set_xlabel(x_label)
-                ax.set_ylabel(measure_label)
-                ax.set_ylim(0, 1.1)  # Set y-axis limits to 0-1
-                # ax.grid(True)
-        # Adjust layout and display the plot
-        if len(measures) > 1:
-            fig.legend(handles, labels, bbox_to_anchor=(0.2, .9), loc=3, ncol=len(handles), title = lines_label, borderaxespad=0.)
-        else:
-            axes.legend(loc="lower left", ncol=2)
-        plt.tight_layout()
-        fig.subplots_adjust(top=0.89)
-
-        plt.savefig(f"{base_path}/graphs/{d}_{detail}_{x}_{graph_lines}_{'_'.join(measures)}.png")
-        plt.close()
-
 
 def plot_one_meas(df, x, x_label, y, y_label, detail, graph_lines, lines_label, graphs_value, change_col, markers = {}, line_styles = {}, colors = {}, y_limit = True):
     set_font()

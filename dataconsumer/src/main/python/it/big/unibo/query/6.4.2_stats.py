@@ -61,7 +61,7 @@ def plotPaper(df):
     plt.legend(loc = "upper left", bbox_to_anchor=(-0.05,1.25), ncol = len(measures))
     plt.tight_layout()
 
-    plt.savefig(f"debug/analysis/graphs/fig_state_records_percentage.png")
+    plt.savefig(f"test/graphs/fig_state_records_percentage.png")
     plt.close()
 
 plotPaper(result_dataset)

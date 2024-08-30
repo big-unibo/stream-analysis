@@ -3,8 +3,6 @@ package it.unibo.big.query.generation.countdistinct
 import it.unibo.big.input.DataDefinition.{Data, NullData}
 import it.unibo.big.input.RecordModeling.Record
 import it.unibo.big.input.{AlgorithmConfiguration, ConfigurationUtils, StreamAnalysisConfiguration}
-import it.unibo.big.query.generation.countdistinct.DimensionStatistics.{DimensionStatistic, DimensionVsDimensionStatistic, Statistic}
-import org.slf4j.{Logger, LoggerFactory}
 
 /**
  * CountDistinct is helper module for calculating the count distinct of dimensions

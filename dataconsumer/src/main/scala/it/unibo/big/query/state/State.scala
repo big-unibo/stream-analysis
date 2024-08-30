@@ -126,13 +126,6 @@ case class State(private var internalStatus: InternalState, configuration: Algor
    */
   def getQueryStatistics(query: GPQuery): Map[Long, Option[QueryStatisticsInPane]] = internalStatus.map(x => x._1 -> x._2.get(query))
 
-  def getQueryRepresentativeness(q: GPQuery): Double = {
-    internalStatus.toSeq.map {
-      case (_, paneStatistics) if paneStatistics.contains(q) => paneStatistics(q).isStored
-      case _ => false
-    }.count(_ == true).toDouble / numberOfPanes * 100
-  }
-
   /**
    * Update the data structure
    *

@@ -11,27 +11,11 @@ object FileReader {
    * @param resourceName resource file from resource folder
    * @return the source of the read file
    */
-  def fromResource(resourceName: String): BufferedSource =
+  private def fromResource(resourceName: String): BufferedSource =
     new BufferedSource(getClass.getClassLoader.getResourceAsStream(resourceName))
-
-  /**
-   *
-   * @param fileName file name
-   * @param action the action used to parse de file
-   * @param isResource true if file is a resource in project
-   * @tparam T the returned type of the file content
-   * @return the T representation of file rows
-   */
-  def fromFile[T](fileName: String, action: BufferedSource => T, isResource : Boolean = true): T = {
-    val source = if (!isResource) scala.io.Source.fromFile ( fileName ) else fromResource(fileName)
-    val res = action(source)
-    source.close
-    res
-  }
 
   import org.slf4j.{Logger, LoggerFactory}
   private val LOGGER: Logger = LoggerFactory.getLogger(getClass.getName)
-  val DEFAULT_DATE_FORMAT: String = "yyyy-MM-dd"
 
   /**
    * Read a file applying its converter
@@ -101,6 +85,6 @@ object FileReader {
    */
   trait MyConverter[A] {
     def parse ( line: String ): A
-    def header ( line: String ) = {}
+    def header ( line: String ): Unit = {}
   }
 }

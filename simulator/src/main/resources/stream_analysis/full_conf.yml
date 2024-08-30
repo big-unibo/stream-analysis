@@ -131,7 +131,7 @@ measures:
         !<Fixed>
         probability: 1
 frequency: 1
-duration: 10000000
+duration: 1000000
 hierarchies:
   - [country, region, locality, area, farm]
   - [company, farm]

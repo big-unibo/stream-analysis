@@ -3,11 +3,11 @@ package it.unibo.big.query.execution
 import it.unibo.big.input.DataDefinition._
 import it.unibo.big.input.GPSJConcepts.GPQuery
 import it.unibo.big.input.RecordModeling.{Record, Window}
+import it.unibo.big.input.{SimulationConfiguration, StreamAnalysisConfiguration}
 import it.unibo.big.query.debug.DebugWriter
 import it.unibo.big.query.generation.choosing.Knapsack
 import it.unibo.big.query.generation.choosing.ScoreUtils._
 import it.unibo.big.query.state.{QueryResultSimplified, QueryStatisticsInPane, State}
-import it.unibo.big.input.{SimulationConfiguration, StreamAnalysisConfiguration}
 import org.slf4j.{Logger, LoggerFactory}
 
 object QueryExecution {

@@ -6,7 +6,7 @@ import it.unibo.big.query.app.DatasetsUtils._
 import it.unibo.big.query.app.ExecuteTests._
 import it.unibo.big.query.execution.QueryExecutionTimeUtils
 
-object FullDatasetsTestPaper {
+object TestUtils {
   /**
    * Apply the full datasets test paper
    * @param executionConfigurations the execution configurations
@@ -71,63 +71,4 @@ case class ExecutionConfiguration(alpha: Double, groupBySet: Int, maxRecordsStat
   require(maxRecordsStatePercentage.forall(x => x > 0 && x <= 1), "Max records state percentage must be between ]0,1]")
   require(maxRecordsStatePercentage.forall(_ >= maxRecordsQueries), "Max records state percentage must be greater than max records queries")
   require(algorithms.nonEmpty, "At least one algorithm must be executed")
-}
-
-object TestDemo extends App {
-  //For most of the configurations execute only ASKE
-  private val alphasConfigurations = Seq(
-    ExecutionConfiguration(alpha = 0.25, groupBySet = 2, maxRecordsStatePercentage = Set(0.05), maxRecordsQueries = 0.05, algorithms = Set(ASKE)),
-    ExecutionConfiguration(alpha = 0.75, groupBySet = 2, maxRecordsStatePercentage = Set(0.05), maxRecordsQueries = 0.05, algorithms = Set(ASKE)))
-
-  private val groupByConfigurations = Seq(ExecutionConfiguration(alpha = 0.5,
-    groupBySet = 3,
-    maxRecordsStatePercentage = Set(0.05),
-    maxRecordsQueries = 0.05,
-    algorithms = Set(ASKE)
-  ))
-
-  private val stateCapacityConfigurations = Set(0.01, 0.025, 0.05, 0.075, 0.1)
-    .map(sc => ExecutionConfiguration(alpha = 0.5, groupBySet = 2, maxRecordsStatePercentage = Set(sc), maxRecordsQueries = sc, algorithms = Set(ASKE))).toSeq ++
-    Seq(ExecutionConfiguration(alpha = 0.5, groupBySet = 2, maxRecordsStatePercentage = Set(0.05), maxRecordsQueries = 0.05, algorithms = Set(ASE, AS1, Naive)))
-
-  FullDatasetsTestPaper(alphasConfigurations ++ groupByConfigurations ++ stateCapacityConfigurations, syntheticDatasets)
-
-  FullDatasetsTestPaper(Seq(ExecutionConfiguration(
-    alpha = 0.5,
-    groupBySet = 2,
-    maxRecordsStatePercentage = Set(),
-    maxRecordsQueries = 1,
-    algorithms = Set(Naive)
-  )), numberOfWindowsToConsider = _ => 3, datasets = syntheticDatasets)
-
-  //knapsack tests
-  FullDatasetsTestPaper(Seq(ExecutionConfiguration(
-    alpha = 0.5,
-    groupBySet = 2,
-    maxRecordsStatePercentage = Set(0.05),
-    maxRecordsQueries = 0.05,
-    algorithms = Set(ASKE, ASE, AS1, Naive)
-  )), datasets = syntheticKnapsackDatasets, numberOfWindowsToConsider = _ => 30)
-
-  val frequencies = Seq(1, 2, 5) ++ Seq.range(20, 70, 10) // here filter 10 in order to have no duplicates with the other tests
-  frequencies.foreach(f => FullDatasetsTestPaper(Seq(ExecutionConfiguration(
-    alpha = 0.5,
-    groupBySet = 2,
-    maxRecordsStatePercentage = Set(0.05),
-    maxRecordsQueries = 0.05,
-    algorithms = Set(ASKE)
-  )), datasets = Seq(Synthetic("full_sim")), frequency = f))
-
-  //fix frequency to 10
-  val paneSizes = Seq(1000, 2500, 5000, 7500, 25000) // here filter 10000 in order to have no duplicates with the other tests
-  paneSizes.foreach(p => {
-    val numberOfPanes = 50000 / p
-    FullDatasetsTestPaper(Seq(ExecutionConfiguration(
-      alpha = 0.5,
-      groupBySet = 2,
-      maxRecordsStatePercentage = Set(0.05),
-      maxRecordsQueries = 0.05,
-      algorithms = Set(ASKE)
-    )), numberOfPanes = numberOfPanes, numberOfRecordsPane = p, numberOfWindowsToConsider = _  => numberOfPanes * 3, datasets = Seq(Synthetic("full_sim")))
-  })
 }

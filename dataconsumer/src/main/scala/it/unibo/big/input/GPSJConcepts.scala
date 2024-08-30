@@ -4,7 +4,6 @@ package it.unibo.big.input
 object GPSJConcepts {
 
   import DataDefinition.{Data, NullData, NumericData, StringData}
-  import GPSJConcepts.Operators.MeasureOperator
 
   import scala.language.postfixOps
 
@@ -82,7 +81,7 @@ object GPSJConcepts {
       def compute(measure: String, preCoumputedResults: Map[Aggregation, Data[_]]): Data[_]
     }
 
-    case object Avg extends NotAggregableOperator {
+    private case object Avg extends NotAggregableOperator {
       override def canBeComputedFrom(measure: String, preCoumputedResults: Map[Aggregation, Data[_]]): Boolean = {
         val aggSum = Aggregation(measure, Sum)
         val aggCount = Aggregation(measure, Count)
@@ -107,7 +106,7 @@ object GPSJConcepts {
       }
     }
 
-    case object Sum extends AggregableOperator {
+    private case object Sum extends AggregableOperator {
 
       override def aggregate(v1: Data[_], v2: Data[_]): Data[_] = {
         (v1, v2) match {
@@ -123,7 +122,7 @@ object GPSJConcepts {
       }
     }
 
-    case object Min extends AggregableOperator {
+    private case object Min extends AggregableOperator {
 
       override def aggregate(v1: Data[_], v2: Data[_]): Data[_] = {
         (v1, v2) match {
@@ -136,7 +135,7 @@ object GPSJConcepts {
       }
     }
 
-    case object Max extends AggregableOperator {
+    private case object Max extends AggregableOperator {
 
       override def aggregate(v1: Data[_], v2: Data[_]): Data[_] = {
         (v1, v2) match {

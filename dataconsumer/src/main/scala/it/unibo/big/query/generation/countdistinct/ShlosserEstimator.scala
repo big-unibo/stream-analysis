@@ -91,7 +91,7 @@ object ShlosserEstimator {
 
 
     val inputQueryDimensions = inputQuery.map(_.dimensions.filter(stringDataStatistics.contains)).getOrElse(Set())
-    val dimensionsCountD: Map[String, DimensionStatistic] = filterMapWithCountDistinct[String, DimensionStatistic](stringDataStatistics, _.countD, (x, c) => x.support >= 0D, configuration, data.size, keepInputElement = d => inputQueryDimensions.contains(d))
+    val dimensionsCountD: Map[String, DimensionStatistic] = filterMapWithCountDistinct[String, DimensionStatistic](stringDataStatistics, _.countD, (x, _) => x.support >= 0D, configuration, data.size, keepInputElement = d => inputQueryDimensions.contains(d))
 
     //define the pairs of dimensions to consider
     val pairsSet = if (calculateOnlyForInputQuery) {

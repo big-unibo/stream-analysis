@@ -5,7 +5,7 @@ import it.unibo.big.input.RecordModeling.{Record, Window}
 import it.unibo.big.input.SimulationConfiguration
 import it.unibo.big.query.generation.QueryUtils.QueriesWithStatistics
 import it.unibo.big.query.generation.countdistinct.DimensionStatistics.DimensionStatistic
-import it.unibo.big.query.state.{QueryStatisticsInPane, State}
+import it.unibo.big.query.state.State
 import it.unibo.big.utils.FileWriter
 import org.slf4j.{Logger, LoggerFactory}
 

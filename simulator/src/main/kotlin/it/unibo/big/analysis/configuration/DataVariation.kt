@@ -6,7 +6,7 @@ import kotlin.reflect.KClass
 
 @Serializable
 /**
- * Class for define a randomic data variation
+ * Class for define a random data variation
  * @param delay the delay of the variation before starting
  * @param frequency the frequency of the variation
  * @param extension the percentage of dimensions (random) involved in a (random) data variation behavior

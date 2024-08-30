@@ -51,7 +51,7 @@ object ExecuteTests {
             numberOfWindowsToConsider: Dataset => Int, numberOfPanes: Int, slideDuration: Long, datasets: Seq[Dataset], availableTime: Long): Unit = {
     datasets.foreach(dataset => {
       //val mainConfiguration = getConf(numberOfQueries, queryPattern, alpha, beta, mainLogFactor).filter(_.knapsack.isDefined).head
-      val stateTypes = Seq(OwnState) //, NaiveState, OtherState(mainConfiguration) In caso uso stato altro algoritmo potrei ottimizzare tempi di esecuzione e non eseguire algoritmo per cui lo stato è uguale
+      val stateTypes = Seq(OwnState)
 
       stateTypes.foreach(state => {
         LOGGER.info(s"Reading ${dataset.fileName}")

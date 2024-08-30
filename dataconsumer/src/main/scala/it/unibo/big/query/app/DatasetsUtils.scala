@@ -12,7 +12,7 @@ object DatasetsUtils {
   sealed trait Dataset {
     val datasetType: String
     val datasetName: String
-    def path(stateType: StateType) = s"debug/analysis/$datasetType/$datasetName/${stateType.extraPath}"
+    def path(stateType: StateType) = s"test/$datasetType/$datasetName/${stateType.extraPath}"
     def fileName: String
     def reader: Iterator[Record]
   }
@@ -23,12 +23,12 @@ object DatasetsUtils {
   }
 
   case class Synthetic(datasetName: String) extends SyntheticDataset {
-    override val fileName: String = s"debug/analysis/$datasetName.csv"
+    override val fileName: String = s"test/$datasetName.csv"
   }
 
   case class ChangingSyntheticDataset(impact: Double, extension: Double) extends SyntheticDataset {
     override val datasetName: String = s"full_sim_impact${impact}extension$extension"
-    override val fileName: String = s"debug/analysis/$datasetName.csv"
+    override val fileName: String = s"test/$datasetName.csv"
   }
 
   private val ranges = Seq(0.2, 0.5, 0.8)

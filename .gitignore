@@ -471,4 +471,6 @@ gradle-app.setting
 ### Gradle Patch ###
 **/build/
 
+/test
+/logs
 # End of https://www.toptal.com/developers/gitignore/api/java,macos,linux,gradle,eclipse,windows,intellij,python,venv,maven,libreoffice,microsoftoffice

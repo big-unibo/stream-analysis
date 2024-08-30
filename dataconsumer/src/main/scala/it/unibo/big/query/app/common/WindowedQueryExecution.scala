@@ -1,9 +1,9 @@
 package it.unibo.big.query.app.common
 
-import it.unibo.big.input.{AlgorithmConfiguration, ConfigurationSetting, NaiveConfiguration, SimulationConfiguration, StreamAnalysisConfiguration}
 import it.unibo.big.input.DataDefinition.{NullData, NumericData, StringData}
 import it.unibo.big.input.GPSJConcepts.GPQuery
 import it.unibo.big.input.RecordModeling.Record
+import it.unibo.big.input._
 import it.unibo.big.query.algorithm.QueryUpdate
 import it.unibo.big.query.algorithm.naive.NaiveQueriesExecutor
 import it.unibo.big.query.app.DatasetsUtils.Dataset
@@ -13,8 +13,8 @@ import it.unibo.big.query.generation.countdistinct.CountDistinct.getDataAsNullVa
 import it.unibo.big.query.generation.countdistinct.ShlosserEstimator
 import it.unibo.big.query.state.StateUtils.StateType
 import it.unibo.big.query.state.{QueryStatisticsInPane, State, StateUtils}
-import org.slf4j.{Logger, LoggerFactory}
 import it.unibo.big.window.DataWindow.windowing
+import org.slf4j.{Logger, LoggerFactory}
 
 object WindowedQueryExecution {
 
@@ -101,7 +101,7 @@ object WindowedQueryExecution {
           gfsMap.foreach {
             case (c, gfs) =>
               try {
-                val (newQuery, executedQueries) = QueryUpdate.updateQuery(simulationConfiguration, setState(gfsNaive, gfsMap, c), newPaneData, window, dimensions, measures, writeDebug = true)
+                val (newQuery, _) = QueryUpdate.updateQuery(simulationConfiguration, setState(gfsNaive, gfsMap, c), newPaneData, window, dimensions, measures, writeDebug = true)
                 if (newQuery.isDefined) {
                   val (result, queryPanesSupport) = gfs.compute(window, newQuery.get)
                   LOGGER.info(s"[QUERY ${newQuery.get.dimensions}] $queryPanesSupport % panes with query config = $c")
@@ -124,7 +124,7 @@ object WindowedQueryExecution {
                   })
                   //if(c.knapsack.isDefined) {
                   //write a csv file with the result of the query of the algorithm in the window
-                  // FileWriter.writeFileWithHeader(resultRecords, keys, s"debug/analysis/results/results_${c.name}_${window.paneTime}.csv")
+                  // FileWriter.writeFileWithHeader(resultRecords, keys, s"test/results/results_${c.name}_${window.paneTime}.csv")
                   //}
                   DebugWriter.writeDatasetStatistics(window, dataDimensions, if (naiveSelectedQuery.isDefined) Some(lastPaneStatistics._2) else None, simulationConfiguration)
                 }

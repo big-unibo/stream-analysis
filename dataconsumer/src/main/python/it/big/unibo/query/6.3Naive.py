@@ -25,7 +25,6 @@ def process_df(df):
 
 df=get_complete_stats_dataframe(process_df)
 
-# mostrare quanto sfora il naive di spazio e tempo
 result = df.groupby(["time", "inputFile", "dataset"]).agg(
     lastPaneRealRecords_sum=('lastPaneRealRecords','sum'),
     totalTime_max=('totalTime','max'),
@@ -44,12 +43,14 @@ def aggregate(df, columns):
 result_file = aggregate(result, ["inputFile", "dataset"])
 result_aggr = aggregate(result_file, ["dataset"])
 result_aggr = round_numeric_columns(result_aggr)
-result_aggr.to_csv("debug/analysis/6.3_naive_aggr.csv", index=False)
+result_aggr.to_csv("test/6.3_naive_aggr.csv", index=False)
 
 for col in ["time_usage", "space_usage"]:
     #add the percentage sign
     result_aggr[col] = 100 + result_aggr[col]
     result_aggr[col] =result_aggr[col].astype(str) + "\%"
 
-print(result_aggr[["dataset", "time_usage", "space_usage"]].to_latex(index=False, escape=False))
+result_df = result_aggr[["dataset", "time_usage", "space_usage"]]
+print(result_df.to_latex(index=False, escape=False))
+result_df.to_csv("test/tables/6.3_naive.csv", index=False)
 

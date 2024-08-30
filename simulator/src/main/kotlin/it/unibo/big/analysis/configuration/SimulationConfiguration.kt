@@ -48,16 +48,6 @@ data class Config(
         }
     }
 
-    /**
-     * Change the data variation in the configuration
-     * @param frequency the frequency of the variation
-     * @param extension the percentage of dimensions (random) involved in a (random) data variation behavior
-     * @param impact the strength of the data variation behavior
-     */
-    fun changeDataVariation(delay: Long, frequency: Long, extension: Double, impact: Double) {
-        dataVariation = DataVariation(delay, frequency, extension, impact)
-        checkDataVariation()
-    }
 }
 
 /**

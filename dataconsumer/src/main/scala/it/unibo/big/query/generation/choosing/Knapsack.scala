@@ -14,14 +14,14 @@ object Knapsack {
 
   private val LOGGER: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  case class Item(estimatedRecords: Int, score: Double, x: MPBinaryVar, query: GPQuery)
+  private case class Item(estimatedRecords: Int, score: Double, x: MPBinaryVar, query: GPQuery)
   /**
    *
    * @param items the queries to select, with their statistics
    * @param maximumNumberOfRecords the maximum number of estimatedRecords
    * @param configuration the used configuration
    * @param numberOfQueriesToExecute the number of queries to execute
-   * @param timeLimit the time limit in millisecods for run the knapsack
+   * @param timeLimit the time limit in milliseconds for run the knapsack
    * @return the selected queries that maximize the scores, considering the constraints
    */
   def apply(items: Seq[(GPQuery, QueryStatisticsInPane)], maximumNumberOfRecords: Long, configuration: StreamAnalysisConfiguration, numberOfQueriesToExecute: Int, timeLimit: Long): Seq[GPQuery] = {

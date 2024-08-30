@@ -62,4 +62,4 @@ print(time_statistics_aggr[[
 "time_choose_queries", "time_execute_queries", "total_queries"
 ]].to_latex(index=False, escape=False))
 
-time_statistics_aggr.to_csv("debug/analysis/6.4.1_time_aggr.csv", index=False)
+time_statistics_aggr.to_csv("test/tables/6.4.1_time_aggr.csv", index=False)

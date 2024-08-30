@@ -75,25 +75,6 @@ lines_label = "Algorithm"
 
 plot_one_meas(df[df['dataset'] == "$D_{syn-k}$"], x, x_label, y, y_label, "dataset", graph_lines, lines_label, "inputFile", "change_sel", markers, line_styles, colors)
 
-#debug of other measures plots
-measures_extra = {
-    "SOP_sel_avg": "score best",
-    "SOPSupport_sel_avg": "supp best",
-    "SOPFd_sel_avg": "continuity best",
-    "SupportLastPane_sel_avg": "supp last pane best",
-    "SOPFd_sum_ex": "continuity sum",
-    "SOP_support_sum_ex": "supp sum",
-    "total_queries": "total queries",
-    "Support_SM": "supp sum div total queries",
-    "FD_SM": "continuity sum div total queries",
-    "SM": "SM",
-    "QM": "QM",
-    "TM": "TM",
-    "VM": "VM",
-}
-for m, m_label in measures_extra.items():
-    plot_one_meas(df, x, x_label, m, m_label, "inputFile", graph_lines, lines_label, "inputFile", "change_sel", markers, line_styles, colors, False)
-
 aggregations = {
                 'SOP_sel_avg': 'mean',
                 #'SOPSupport_sel_avg': 'mean',
@@ -111,11 +92,4 @@ result_aggr_file["SM"] = result_aggr_file.apply(lambda r: 1 if r["algorithm_name
 
 result_aggr = result_aggr_file.groupby(["dataset", "algorithm_name"]).agg(aggregations).reset_index()
 
-df.to_csv("debug/analysis/6.5_stats.csv", index=False)
-i = 0
-for df in [result_aggr, result_aggr_file]:
-    file_name = f"debug/analysis/6.5_stats{i}.csv"
-    i += 1
-    df.to_csv(file_name, index=False)
-    df = round_numeric_columns(df, decimals=2)
-    print(df.to_latex(index=False, escape=False))
+result_aggr.to_csv("test/tables/6.5_stats.csv", index=False)
