@@ -1,6 +1,6 @@
 plugins {
     id 'scala'
-    id 'com.github.alisiikh.scalastyle' version '3.4.1'
+    id 'com.github.alisiikh.scalastyle' version '3.5.0'
 }
 
 scalastyle {
