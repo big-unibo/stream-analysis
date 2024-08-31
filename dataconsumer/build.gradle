@@ -28,11 +28,11 @@ dependencies {
     implementation "com.github.haifengl:smile-core:$smileVersion"
     implementation "com.github.haifengl:smile-scala_$scalaVersionMajor:$smileVersion"
     //dependencies of smile
-    implementation "org.bytedeco:openblas:0.3.6-1.5.1"
+    implementation "org.bytedeco:openblas:0.3.26-1.5.10"
     implementation "org.bytedeco:javacv:1.5.10"
     implementation 'org.bytedeco.javacpp-presets:openblas:0.3.5-1.4.4'
     implementation 'org.bytedeco.javacpp-presets:openblas-platform:0.3.5-1.4.4'
-    implementation 'org.bytedeco:openblas:0.3.19-1.5.7'
+    implementation 'org.bytedeco:openblas:0.3.26-1.5.10'
     implementation 'org.bytedeco:openblas-platform:0.3.19-1.5.7'
     // hyperloglog
     implementation "com.twitter:algebird-core_$scalaVersionMajor:0.13.10"
