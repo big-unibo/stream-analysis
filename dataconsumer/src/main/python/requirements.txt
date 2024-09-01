@@ -3,7 +3,7 @@ setuptools
 igraph==0.11.6
 pandas==1.5.3
 kneed==0.8.5
-numpy==1.23.5
+numpy==1.26.4
 matplotlib==3.9.2
 latex
 pylatex
