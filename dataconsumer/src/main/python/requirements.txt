@@ -4,6 +4,6 @@ igraph==0.11.6
 pandas==1.5.3
 kneed==0.8.5
 numpy==1.23.5
-matplotlib==3.8.4
+matplotlib==3.9.2
 latex
 pylatex
