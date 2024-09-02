@@ -18,6 +18,13 @@ Then the results are stored in test folder and insights are retrived with python
 It requires docker installed and running .
 
 For run the test and obtain the results in the test folder, you can run the following command:
+
+Linux:
 ```shell
 ./test.sh
+```
+
+Windows:
+```shell
+.\test.bat
 ```
