@@ -6,8 +6,10 @@ java -cp simulator/build/libs/simulator-0.1-all.jar it.unibo.big.analysis.simula
 # run test
 java -cp dataconsumer/build/libs/dataconsumer-0.1-all.jar it.unibo.big.query.app.Test
 
-# python code to generate the graph
-apt-get update && apt-get install -y python3 python3-pip
-# activate conda environment with dataconsumer/src/main/python/requirements.txt
-pip3 install -r dataconsumer/src/main/python/requirements.txt
-python3 dataconsumer/src/main/python/it/big/unibo/query/paperTest.py
+# run the test
+for test in dataconsumer/src/main/python/it/big/unibo/query/*.py; do
+    # if not common
+    if [ "$test" != "dataconsumer/src/main/python/it/big/unibo/query/common.py" ]; then
+        python3 "$test"
+    fi
+done
