@@ -43,7 +43,6 @@ def aggregate(df, columns):
 result_file = aggregate(result, ["inputFile", "dataset"])
 result_aggr = aggregate(result_file, ["dataset"])
 result_aggr = round_numeric_columns(result_aggr)
-result_aggr.to_csv("test/6.3_naive_aggr.csv", index=False)
 
 for col in ["time_usage", "space_usage"]:
     #add the percentage sign
