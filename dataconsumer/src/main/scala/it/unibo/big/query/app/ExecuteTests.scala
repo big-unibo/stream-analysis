@@ -50,7 +50,7 @@ object ExecuteTests {
   def apply(configurations: Dataset => Map[ConfigurationSetting, (Option[NaiveConfiguration], Seq[StreamAnalysisConfiguration])],
             numberOfWindowsToConsider: Dataset => Int, numberOfPanes: Int, slideDuration: Long, datasets: Seq[Dataset], availableTime: Long): Unit = {
     datasets.foreach(dataset => {
-      //val mainConfiguration = getConf(numberOfQueries, queryPattern, alpha, beta, mainLogFactor).filter(_.knapsack.isDefined).head
+
       val stateTypes = Seq(OwnState)
 
       stateTypes.foreach(state => {

@@ -88,12 +88,7 @@ object WindowedQueryExecution {
           var lastPaneStatistics : LastPaneStatistics = null
           if(naiveConfiguration.isDefined) {
             val (_, allDimensionsStatistics, functionalDependenciesScores) = ShlosserEstimator.calculateFunctionalDependencies(newPaneData, naiveConfiguration.get, naiveSelectedQuery.map(_._1), dimensions, calculateOnlyForInputQuery = true)
-            /*//remove old data from the map
-            countDMap = countDMap.filterKeys(window.contains)
-            //filter out the functional dependencies of previous windows
-            countDMap = countDMap.map{
-              case (w, (dataSize, dimensionStatistics, _)) => (w, (dataSize, dimensionStatistics, Map[(String, String), Double]()))
-            }*/
+
             lastPaneStatistics = (newPaneData.size, allDimensionsStatistics, functionalDependenciesScores)
             LOGGER.info(s"Window $window (t = ${window.paneTime}) with ${windowData.size} values new data = ${newPaneData.size} old data = ${previousPaneData.size}")
           }
@@ -115,17 +110,10 @@ object WindowedQueryExecution {
                       case StringData(value) => value
                       case NullData => null
                     }
-                    /*resultRecords = resultRecords :+ keys.map(k => x.getOrElse(k, NullData)).map {
-                    case NumericData(value) => value
-                    case StringData(value) => value
-                    case NullData => null
-                  }*/
-                    LOGGER.debug(r.mkString("|")) //TODO write as output statistics
+
+                    LOGGER.debug(r.mkString("|"))
                   })
-                  //if(c.knapsack.isDefined) {
-                  //write a csv file with the result of the query of the algorithm in the window
-                  // FileWriter.writeFileWithHeader(resultRecords, keys, s"test/results/results_${c.name}_${window.paneTime}.csv")
-                  //}
+
                   DebugWriter.writeDatasetStatistics(window, dataDimensions, if (naiveSelectedQuery.isDefined) Some(lastPaneStatistics._2) else None, simulationConfiguration)
                 }
               } catch {
@@ -151,9 +139,6 @@ object WindowedQueryExecution {
   def simulate(dataset: Dataset, windowDuration: Long, slideDuration: Long, numberOfWindowsToConsider: Int,
                stateType: StateType, configurations: Map[ConfigurationSetting, (Option[NaiveConfiguration], Seq[StreamAnalysisConfiguration])], availableTime: Long): Unit = {
     val path = dataset.path(stateType)
-    /*LOGGER.info(s"Start simulation in $path")
-    FileWriter.deleteDirectory(path)
-    LOGGER.info(s"Deleting directory $path")*/
 
     val simulationConfiguration = SimulationConfiguration(dataset,
       windowDuration = windowDuration,
@@ -163,10 +148,7 @@ object WindowedQueryExecution {
       datasetStatisticsFile = s"${path}stats_dataset.csv",
       availableTime = availableTime
     )
-    /*
-    windowing[Record](data, simulationConfiguration.windowDuration, simulationConfiguration.slideDuration, (window, data, windowTime) => {
-       LOGGER.info(s"Window time $windowTime for dataset $datasetName")
-     }, None, None, numberOfWindowsToConsider = Some(simulationConfiguration.numberOfWindowsToConsider))*/
+
     try {
       compute(dataset.reader, configurations, simulationConfiguration, stateType.setState)
     } catch {

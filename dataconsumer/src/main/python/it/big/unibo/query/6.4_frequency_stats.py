@@ -101,7 +101,6 @@ for ax in [ax1, ax2]:
     #plot y ticks from 0 to 1 with step 0.2
     ax.set_yticks(np.arange(0, 1.2, 0.2))
 
-#plot a unique legend for both plots TODO fix
 fig.legend(handles, labels, bbox_to_anchor=(0.3, .9), loc=3, ncol=len(handles), borderaxespad=0.)
 
 plt.tight_layout()

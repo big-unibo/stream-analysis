@@ -248,8 +248,6 @@ def get_queries_statistics_by_time(process_df, grouping_columns, datasets = ["sy
     df['change'] = df['notChange'] .apply(lambda x : 0 if x == 1 else 1)
     columns = grouping_columns + ["time"]
     executed_df = df[df["stored"] == True]
-    # TODO normalize records if there are more than one results for a configuration
-    #df = df.groupby(configuration_columns + ["time", "dimensions", "dataset"]).first().reset_index()
 
     result_executed = executed_df.groupby(columns).agg(
        executed_queries=('executed','sum'),
