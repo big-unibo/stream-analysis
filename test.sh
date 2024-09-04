@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build the Docker image with the tag 'stream-analysis'
+# Build the Docker image with the tag 'stream-streamanalysis'
 docker build -t stream-analysis .
 
 # Create necessary directories if they don't exist
