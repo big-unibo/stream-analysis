@@ -1,15 +1,15 @@
 #!/bin/sh
 
-# run simulator
-java -cp simulator/build/libs/simulator-0.1-all.jar it.unibo.big.analysis.simulation.GeneratorKt
+# run generator
+java -cp generator/build/libs/generator-0.1-all.jar it.unibo.big.analysis.simulation.GeneratorKt
 
 # run test
-java -cp dataconsumer/build/libs/dataconsumer-0.1-all.jar it.unibo.big.query.app.Test
+java -cp algorithms/build/libs/algorithms-0.1-all.jar it.unibo.big.query.app.Test
 
 # run the test
-for test in dataconsumer/src/main/python/it/big/unibo/query/*.py; do
+for test in algorithms/src/main/python/it/big/unibo/query/*.py; do
     # if not common
-    if [ "$test" != "dataconsumer/src/main/python/it/big/unibo/query/common.py" ]; then
+    if [ "$test" != "algorithms/src/main/python/it/big/unibo/query/common.py" ]; then
         python3 "$test"
     fi
 done

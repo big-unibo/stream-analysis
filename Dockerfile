@@ -8,8 +8,8 @@ COPY build.gradle /app/build.gradle
 COPY settings.gradle /app/settings.gradle
 COPY gradle.properties /app/gradle.properties
 COPY config/ /app/config
-COPY dataconsumer/ /app/dataconsumer
-COPY simulator/ /app/simulator
+COPY algorithms/ /app/algorithms
+COPY generator/ /app/generator
 COPY script/ /app/script
 #create directory app test
 RUN mkdir /app/test
@@ -23,12 +23,12 @@ RUN apt-get update && \
     texlive-latex-recommended texlive-publishers texlive-science \
     texlive-xetex cm-super gcc libpq-dev
 
-# activate conda environment with dataconsumer/src/main/python/requirements.txt
-RUN pip3 install -r dataconsumer/src/main/python/requirements.txt
+# activate conda environment with algorithms/src/main/python/requirements.txt
+RUN pip3 install -r algorithms/src/main/python/requirements.txt
 
 RUN chmod +x gradlew
 # create jars
-RUN ./gradlew simulator:shadowJar --no-daemon -Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false
-RUN ./gradlew dataconsumer:shadowJar --no-daemon -Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false
+RUN ./gradlew generator:shadowJar --no-daemon -Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false
+RUN ./gradlew algorithms:shadowJar --no-daemon -Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false
 # run tests
 CMD ["script/run-docker-test.sh"]

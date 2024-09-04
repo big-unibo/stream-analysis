@@ -215,7 +215,7 @@ def get_path_to_store_results():
     """
     return f"test/{get_input_folder()}"
 
-base_dir = r"./dataconsumer/src/main/python/it/big/unibo/query"
+base_dir = r"./algorithms/src/main/python/it/big/unibo/query"
 base_path = r"./test/"
 
 def process_directory(path, base, function, file_name):
