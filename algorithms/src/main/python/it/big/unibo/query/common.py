@@ -59,9 +59,9 @@ def get_configuration_string(row):
     reducedIn = get_reduced_in(row)
     #from a row with configuration column return a string with the configuration
     if row["isNaive"]:
-        str = f"NAIVE_alpha={row['alpha']},beta={row['beta']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['k']},pqr={row['maximumQueryCardinalityPercentage']:.3f},in={reducedIn},f={row['frequency']}"
+        str = f"NAIVE_alpha={row['alpha']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['k']},pqr={row['maximumQueryCardinalityPercentage']:.3f},in={reducedIn},f={row['frequency']}"
     else:
-        str = f"alpha={row['alpha']},beta={row['beta']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['k']},pqr={row['maximumQueryCardinalityPercentage']:.3f},sp={row['stateCapacity']:.3f},kn={row['knapsack']},s={row['single']},in={reducedIn},f={row['frequency']}"
+        str = f"alpha={row['alpha']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['k']},pqr={row['maximumQueryCardinalityPercentage']:.3f},sp={row['stateCapacity']:.3f},kn={row['knapsack']},s={row['single']},in={reducedIn},f={row['frequency']}"
 
     return sanitize_label(str)
 
@@ -70,7 +70,7 @@ def get_simulation_string(row):
         row = pd.Series(row, index=simulation_columns)
     #from a row with simulation column return a string with the configuration
     reducedIn = get_reduced_in(row)
-    str = f"alpha={row['alpha']},beta={row['beta']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['k']},pqr={row['maximumQueryCardinalityPercentage']:.3f},in={reducedIn},f={row['frequency']}"
+    str = f"alpha={row['alpha']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['k']},pqr={row['maximumQueryCardinalityPercentage']:.3f},in={reducedIn},f={row['frequency']}"
     str = sanitize_label(str)
     label = f"{get_path_to_store_results()}/{str}"
      #create the directory if not exists
