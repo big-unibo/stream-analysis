@@ -1,8 +1,7 @@
 package it.unibo.big.streamanalysis.algorithm.app
 
-import it.unibo.big.streamanalysis.utils.DatasetsUtils.{Synthetic, syntheticDatasets, syntheticKnapsackDatasets}
-import ExecutionUtils.{AS1, ASE, ASKE, Naive}
-import ExecutionUtils.{AS1, ASE, ASKE, Naive}
+import it.unibo.big.streamanalysis.algorithm.app.ExecutionUtils.{AS1, ASE, ASKE, Naive}
+import it.unibo.big.streamanalysis.utils.DatasetsUtils.{Synthetic, syntheticDatasets}
 
 object AlgorithmsExecution extends App {
   //For most of the configurations execute only ASKE
