@@ -4,7 +4,6 @@ import it.unibo.big.streamanalysis.algorithm.app.ExecutionUtils.{ExecutionAlgori
 import it.unibo.big.streamanalysis.algorithm.app.common.WindowedQueryExecution.simulate
 import it.unibo.big.streamanalysis.algorithm.execution.QueryExecutionTimeUtils
 import it.unibo.big.streamanalysis.algorithm.state.StateUtils.OwnState
-import it.unibo.big.streamanalysis.input.GPSJConcepts.QueryPattern
 import it.unibo.big.streamanalysis.input._
 import it.unibo.big.streamanalysis.utils.DatasetsUtils.{ChangingSyntheticDataset, Dataset}
 import org.slf4j.{Logger, LoggerFactory}
@@ -27,31 +26,20 @@ object ExecutionUtils {
 
     require(executionConfigurations.nonEmpty, "Execution configurations must be non empty")
 
-    val configurations: Map[ConfigurationSetting, (Option[NaiveConfiguration], Seq[StreamAnalysisConfiguration])] = executionConfigurations.map{
-      case ExecutionConfiguration(alpha, groupBySet, maxRecordsStatePercentage, maxRecordsQueries, algorithms) =>
-        val logFactors = maxRecordsStatePercentage.toSeq.map(p => {
-          p -> ConfigurationUtils.getLogFactor(p, numberOfRecordsPane.toInt)
-        }).toMap
-        val ourExecutionAlgorithms = algorithms.collect{
+    val configurations: Map[ExecutionConfiguration, (Option[NaiveConfiguration], Seq[StreamAnalysisConfiguration])] = executionConfigurations.map(conf => {
+        val ourExecutionAlgorithms = conf.algorithms.collect{
           case x if x.isInstanceOf[OurExecutionAlgorithm] => x.asInstanceOf[OurExecutionAlgorithm]
         }
-        val qp = QueryPattern(groupBySet, None)
-        val usedLogFactors = logFactors.filterKeys(_ >= maxRecordsQueries).values.toSet
-        if(ourExecutionAlgorithms.nonEmpty) {
-          require(usedLogFactors.nonEmpty, s"Log factor not found for $maxRecordsQueries")
-        }
-        val setting = ConfigurationSetting(alpha, qp, maxRecordsQueries)
-        val naiveConfiguration = if(algorithms.contains(Naive)) Some(NaiveConfiguration(qp, alpha, maxRecordsQueries)) else None
+        val naiveConfiguration = if(conf.algorithms.contains(Naive)) Some(NaiveConfiguration(conf.k, conf.alpha, conf.maximumQueryCardinalityPercentage)) else None
         val algorithmsConfigurations = if(ourExecutionAlgorithms.nonEmpty) StreamAnalysisConfiguration.getConfigurations(
           queryExecutionTime = queryExecutionTime,
-          queryPattern = qp,
-          alphas = Set(alpha),
-          logFactors = usedLogFactors,
-          algorithms = ourExecutionAlgorithms,
-          getPercentage = _ => maxRecordsQueries
+          k = conf.k,
+          alphas = Set(conf.alpha),
+          stateCapacities = conf.stateCapacities,
+          algorithms = ourExecutionAlgorithms
         ) else Seq()
-        setting -> (naiveConfiguration, algorithmsConfigurations)
-    }.groupBy(_._1).mapValues(xs => (util.Try(xs.map(_._2._1).filter(_.nonEmpty).head.get).toOption, xs.flatMap(_._2._2)))
+        conf -> (naiveConfiguration, algorithmsConfigurations)
+    }).groupBy(_._1).mapValues(xs => (util.Try(xs.map(_._2._1).filter(_.nonEmpty).head.get).toOption, xs.flatMap(_._2._2)))
     execute(_ => configurations, numberOfWindowsToConsider, numberOfPanes, slideDuration = numberOfRecordsPane, datasets = datasets, availableTime = math.ceil(numberOfRecordsPane / frequency).toLong)
   }
 
@@ -87,14 +75,14 @@ object ExecutionUtils {
   /**
    * Execute the algorithms in the scenarios datasets
    *
-   * @param configurations the settings with respective naive (if present) and stream streamanalysis configurations
+   * @param configurations the settings with respective naive (if present) and other algorithms' configurations
    * @param numberOfWindowsToConsider the number of windows to consider
    * @param numberOfPanes the number of panes in the window
    * @param slideDuration the slide duration (number of records to consider)
    * @param datasets the datasets to consider
    * @param availableTime the available time for the execution
    */
-  private def execute(configurations: Dataset => Map[ConfigurationSetting, (Option[NaiveConfiguration], Seq[StreamAnalysisConfiguration])],
+  private def execute(configurations: Dataset => Map[ExecutionConfiguration, (Option[NaiveConfiguration], Seq[StreamAnalysisConfiguration])],
             numberOfWindowsToConsider: Dataset => Int, numberOfPanes: Int, slideDuration: Long, datasets: Seq[Dataset], availableTime: Long): Unit = {
     datasets.foreach(dataset => {
 
@@ -119,22 +107,45 @@ object ExecutionUtils {
 /**
  * Execution configuration
  * @param alpha the alpha
- * @param groupBySet  the group by set of queries
- * @param maxRecordsStatePercentage the max records state percentage
- * @param maxRecordsQueries the max records queries
+ * @param k  the number of attributes in the group-by set of the queries that can be executed
+ * @param stateCapacities the state capacities of execution, percentage in ]0,1]
+ * @param maximumQueryCardinalityPercentage the maximum query cardinality percentage ]0,1]
  * @param algorithms to execute
  */
-case class ExecutionConfiguration(alpha: Double, groupBySet: Int, maxRecordsStatePercentage: Set[Double], maxRecordsQueries: Double,
+case class ExecutionConfiguration(alpha: Double, k: Int, stateCapacities: Set[Double], maximumQueryCardinalityPercentage: Double,
                                   algorithms: Set[ExecutionAlgorithm]) {
   require(alpha >= 0 && alpha <= 1, "Alpha must be in [0, 1]")
-  require(groupBySet > 0, "Group by set must be positive")
-  if(maxRecordsStatePercentage.isEmpty) {
-    require(!algorithms.exists(_.isInstanceOf[OurExecutionAlgorithm]), "If no max records state percentage is defined, only naive algorithm must be executed")
+  require(k > 0, "Group by set must be positive")
+  if(stateCapacities.isEmpty) {
+    require(!algorithms.exists(_.isInstanceOf[OurExecutionAlgorithm]), "If no state capacity limit is defined, only naive algorithm must be executed")
   }
-  require(maxRecordsQueries >= 0, "Max records queries must be positive")
-  require(maxRecordsStatePercentage.forall(x => x > 0 && x <= 1), "Max records state percentage must be between ]0,1]")
-  require(maxRecordsStatePercentage.forall(_ >= maxRecordsQueries), "Max records state percentage must be greater than max records queries")
+  require(maximumQueryCardinalityPercentage >= 0, "Maximum query cardinality must be positive")
+  require(stateCapacities.forall(x => x > 0 && x <= 1), "State capacities must be between ]0,1]")
+  require(stateCapacities.forall(_ >= maximumQueryCardinalityPercentage), "State capacities must be greater equals than maximum query cardinality")
   require(algorithms.nonEmpty, "At least one algorithm must be executed")
+
+  /**
+   * Check if the configuration is compliant with the given algorithm configuration
+   * @param algorithmConfiguration the algorithm configuration
+   */
+  def isCompliantConfiguration(algorithmConfiguration: AlgorithmConfiguration): Unit = {
+    require(alpha == algorithmConfiguration.alpha, "alpha must be the same")
+    require(k == algorithmConfiguration.k, "query k must be the same")
+    require(maximumQueryCardinalityPercentage == algorithmConfiguration.maximumQueryCardinalityPercentage, "Maximum percentage of records in query result must be the same")
+  }
+}
+
+/**
+ * Companion object of ExecutionConfiguration
+ */
+object ExecutionConfiguration {
+  def apply(alpha: Double, k: Int, stateCapacities: Set[Double], algorithms: Set[ExecutionAlgorithm]): ExecutionConfiguration = {
+    ExecutionConfiguration(alpha, k, stateCapacities, stateCapacities.min, algorithms)
+  }
+
+  def apply(alpha: Double, groupBySet: Int, maximumQueryCardinality: Double, algorithms: Set[ExecutionAlgorithm]): ExecutionConfiguration = {
+    new ExecutionConfiguration(alpha, groupBySet, Set(), maximumQueryCardinality, algorithms)
+  }
 }
 
 

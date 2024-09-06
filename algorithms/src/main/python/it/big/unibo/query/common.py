@@ -6,22 +6,16 @@ import numpy as np
 import math
 
 simulation_columns = [
-    "alpha", "beta", "windowDuration", "slideDuration", "pattern.numberOfDimensions",
-    "approximateBits", "approximate", "percentageOfRecordsInQueryResults",
+    "alpha", "windowDuration", "slideDuration", "k",
+    "approximateBits", "approximate", "maximumQueryCardinalityPercentage",
     "inputFile", "frequency", "availableTime"
 ]
 
 algorithm_columns = [
-     "knapsack", "state_records_percentage", "isNaive", "single"
+     "knapsack", "stateCapacity", "isNaive", "single"
 ]
 
 configuration_columns = simulation_columns + algorithm_columns
-
-def from_log_factor_to_percentage(log_factor, pane_records):
-    try:
-        return math.pow(math.log(pane_records), log_factor) / pane_records
-    except (OverflowError, ValueError):
-        return float('inf')
 
 def get_complete_stats_dataframe(process_df, datasets = ["synthetic"]):
     dataframes = []
@@ -65,9 +59,9 @@ def get_configuration_string(row):
     reducedIn = get_reduced_in(row)
     #from a row with configuration column return a string with the configuration
     if row["isNaive"]:
-        str = f"NAIVE_alpha={row['alpha']},beta={row['beta']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['pattern.numberOfDimensions']},pqr={row['percentageOfRecordsInQueryResults']:.3f},in={reducedIn},f={row['frequency']}"
+        str = f"NAIVE_alpha={row['alpha']},beta={row['beta']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['k']},pqr={row['maximumQueryCardinalityPercentage']:.3f},in={reducedIn},f={row['frequency']}"
     else:
-        str = f"alpha={row['alpha']},beta={row['beta']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['pattern.numberOfDimensions']},pqr={row['percentageOfRecordsInQueryResults']:.3f},sp={row['state_records_percentage']:.3f},kn={row['knapsack']},s={row['single']},in={reducedIn},f={row['frequency']}"
+        str = f"alpha={row['alpha']},beta={row['beta']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['k']},pqr={row['maximumQueryCardinalityPercentage']:.3f},sp={row['stateCapacity']:.3f},kn={row['knapsack']},s={row['single']},in={reducedIn},f={row['frequency']}"
 
     return sanitize_label(str)
 
@@ -76,7 +70,7 @@ def get_simulation_string(row):
         row = pd.Series(row, index=simulation_columns)
     #from a row with simulation column return a string with the configuration
     reducedIn = get_reduced_in(row)
-    str = f"alpha={row['alpha']},beta={row['beta']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['pattern.numberOfDimensions']},pqr={row['percentageOfRecordsInQueryResults']:.3f},in={reducedIn},f={row['frequency']}"
+    str = f"alpha={row['alpha']},beta={row['beta']},wd={row['windowDuration']},sd={row['slideDuration']},dims={row['k']},pqr={row['maximumQueryCardinalityPercentage']:.3f},in={reducedIn},f={row['frequency']}"
     str = sanitize_label(str)
     label = f"{get_path_to_store_results()}/{str}"
      #create the directory if not exists
@@ -87,7 +81,7 @@ def get_algorithm_string(row):
     if type(row) == tuple:
         row = pd.Series(row, index=algorithm_columns)
     #from a row with algorithm column return a string with the configuration
-    return "N" if row["isNaive"] else f"sp={row['state_records_percentage']:.3f}_kn={row['knapsack']}_s={row['single']}"
+    return "N" if row["isNaive"] else f"sp={row['stateCapacity']:.3f}_kn={row['knapsack']}_s={row['single']}"
 
 def format_selection(row):
     if row['selected'] and row['stored']:
@@ -100,7 +94,7 @@ def format_selection(row):
         return "e"
     elif row['selected']:
         return "S"
-    elif pd.isna(row['SOP']):
+    elif pd.isna(row['score']):
         return None
     else:
         return "N"
@@ -120,10 +114,10 @@ def generate_line_styles(num_styles):
 
 def get_color_map(df):
     """
-    Create a color map based on the state_records_percentage and single columns of the DataFrame.
+    Create a color map based on the stateCapacity and single columns of the DataFrame.
     """
-    # Create a unique key by combining state_records_percentage and single
-    df['composite_key'] = df.apply(lambda row: (row['state_records_percentage'], row['single']), axis=1)
+    # Create a unique key by combining stateCapacity and single
+    df['composite_key'] = df.apply(lambda row: (row['stateCapacity'], row['single']), axis=1)
 
     # Get unique composite keys
     unique_composite_keys = df['composite_key'].unique()
@@ -188,7 +182,6 @@ def get_stats_df(input_folder = get_input_folder()):
     Read the stats.csv file and return the DataFrame.
     """
     df = get_df("stats", input_folder)
-    df["state_records_percentage"] = df.apply(lambda row: from_log_factor_to_percentage(row['logFactor'], row['slideDuration']), axis=1)
     # Apply the function to create the 'info' column
     df['selection'] = df.apply(format_selection, axis=1)
     df['algorithm'] = df.apply(lambda row: get_algorithm_string(row), axis=1)
@@ -252,13 +245,13 @@ def get_queries_statistics_by_time(process_df, grouping_columns, datasets = ["sy
     result_executed = executed_df.groupby(columns).agg(
        executed_queries=('executed','sum'),
        numberOfQueriesToExecute_max=('numberOfQueriesToExecute','max'),
-       lastPaneRealRecords_sum=('lastPaneRealRecords','sum'),
+       queryCardinalityLastPane_sum=('queryCardinalityLastPane','sum'),
        lastPaneMaxRecords_max=('lastPaneMaxRecords','max'),
        lastPaneRecords_max=('lastPaneRecords','max'),
-       SOP_sum_ex=('SOP','sum'),
-       SOPSupport_ex_avg=('SOPSupport','mean'),
-       SOP_support_sum_ex=('SOPSupport','sum'),
-       SOPFd_sum_ex=('SOPFd','sum'),
+       score_sum_ex=('score','sum'),
+       support_ex_avg=('support','mean'),
+       score_support_sum_ex=('support','sum'),
+       similarity_sum_ex=('similarity','sum'),
     ).reset_index()
 
     result_tot = df.groupby(columns).agg(
@@ -269,26 +262,26 @@ def get_queries_statistics_by_time(process_df, grouping_columns, datasets = ["sy
         time_execute_queries = ('timeForQueryExecution', 'max'),
         attributes_avg = ('numberOfAttributes', 'mean'),
         measures_avg = ('measures', 'mean'),
-        SOP_sum=('SOP','sum')
+        score_sum=('score','sum')
     )
     result_tot['extra_time'] = result_tot['total_time'] - (result_tot['time_score'] + result_tot['time_choose_queries'] + result_tot['time_execute_queries'])
     result = pd.merge(result_executed, result_tot, on=columns, how='outer')
     # Total queries is the minimum between queries executed and to execute
     result['queries'] = result[['numberOfQueriesToExecute_max', 'total_queries']].min(axis=1)
     result['TM'] = result['executed_queries'] / result['queries']
-    result['VM'] = result['lastPaneRealRecords_sum'] / result['lastPaneMaxRecords_max']
-    result['SM'] = result['SOP_sum_ex'] / result['SOP_sum']
-    result['Support_SM'] = result['SOP_support_sum_ex'] / result['total_queries']
-    result['FD_SM'] = result['SOPFd_sum_ex'] / result['total_queries']
+    result['VM'] = result['queryCardinalityLastPane_sum'] / result['lastPaneMaxRecords_max']
+    result['SM'] = result['score_sum_ex'] / result['score_sum']
+    result['Support_SM'] = result['score_support_sum_ex'] / result['total_queries']
+    result['FD_SM'] = result['similarity_sum_ex'] / result['total_queries']
     #query eseguite rispetto al totale delle fattibili
     result['QM'] = result['executed_queries'] / result["total_queries"]
 
     selected_df = df[df["selected"] == True]
     result_selected = selected_df.groupby(columns).agg(
-       SOP_sel_avg=('SOP','mean'),
-       SOPFd_sel_avg=('SOPFd','mean'),
-       SOPSupport_sel_avg=('SOPSupport','mean'),
-       SupportLastPane_sel_avg=('querySupportLastPaneReal','mean'),
+       score_sel_avg=('score','mean'),
+       similarity_sel_avg=('similarity','mean'),
+       support_sel_avg=('support','mean'),
+       SupportLastPane_sel_avg=('supportLastPaneReal','mean'),
        change_sel = ('change', 'max')
     ).reset_index()
     result = pd.merge(result, result_selected, on=columns, how='outer')

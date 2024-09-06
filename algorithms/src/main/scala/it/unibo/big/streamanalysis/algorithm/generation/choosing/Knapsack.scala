@@ -2,7 +2,6 @@ package it.unibo.big.streamanalysis.algorithm.generation.choosing
 
 import it.unibo.big.streamanalysis.algorithm.state.QueryStatisticsInPane
 import it.unibo.big.streamanalysis.input.GPSJConcepts.GPQuery
-import it.unibo.big.streamanalysis.input.GPSJConcepts.GPQuery
 import it.unibo.big.streamanalysis.input.StreamAnalysisConfiguration
 import optimus.algebra.AlgebraOps._
 import optimus.algebra._
@@ -35,7 +34,7 @@ object Knapsack {
 
       // Given the limited capacity of the pack
       subjectTo {
-        Seq(sum(itemsKnapsack)(item => item.x * item.estimatedRecords) <:= maximumNumberOfRecords * configuration.knapsack.get,
+        Seq(sum(itemsKnapsack)(item => item.x * item.estimatedRecords) <:= maximumNumberOfRecords,
           sum(itemsKnapsack)(item => item.x) <:= numberOfQueriesToExecute): _*
       }
 
@@ -48,7 +47,7 @@ object Knapsack {
 
       // Calculate total space used
       val totalSpaceUsed: Long = selected.map(item => item.estimatedRecords).sum
-      if (totalSpaceUsed > maximumNumberOfRecords * configuration.knapsack.get) {
+      if (totalSpaceUsed > maximumNumberOfRecords) {
         LOGGER.error(s"Total space used $totalSpaceUsed is greater than maximumNumberOfRecords $maximumNumberOfRecords")
       }
       if (totalSpaceUsed == 0) {

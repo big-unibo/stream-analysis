@@ -15,15 +15,15 @@ def process_df(df):
                 (df["isNaive"] == False) &
                 (df["knapsack"] == True) &
                 (df["alpha"] == alpha) &
-                (np.isclose(df['state_records_percentage'], state_records_percentage, atol=tolerance)) &
+                (np.isclose(df['stateCapacity'], state_records_percentage, atol=tolerance)) &
                 (df["windowDuration"] == window_duration) &
                 (df["slideDuration"] == slide_duration) &
-                (df["percentageOfRecordsInQueryResults"] == percentage_records) &
+                (df["maximumQueryCardinalityPercentage"] == percentage_records) &
                 (df["inputFile"].str.contains("knapsack") == False) &
                 (df["frequency"] == frequency)
             ]
 
-grouping_columns=["pattern.numberOfDimensions", "inputFile", "dataset"]
+grouping_columns=["k", "inputFile", "dataset"]
 result = get_queries_statistics_by_time(process_df, grouping_columns)
 
 def aggregate(df, columns):
@@ -38,7 +38,7 @@ def aggregate(df, columns):
            ).reset_index()
 
 time_statistics_inputFile = aggregate(result, grouping_columns)
-time_statistics_aggr = aggregate(time_statistics_inputFile, ["pattern.numberOfDimensions", "dataset"])
+time_statistics_aggr = aggregate(time_statistics_inputFile, ["k", "dataset"])
 
 #change time_score, time_choose_queries and time_execute_queries to percentage with respect to total_time
 times_cols = ["time_score", "time_choose_queries", "time_execute_queries"]
@@ -57,7 +57,7 @@ for col in times_cols:
     time_statistics_aggr[col] = time_statistics_aggr[col].astype(str) + "\%"
 
 print(time_statistics_aggr[[
-"pattern.numberOfDimensions",
+"k",
 "dataset", "total_time", "time_score",
 "time_choose_queries", "time_execute_queries", "total_queries"
 ]].to_latex(index=False, escape=False))

@@ -1,7 +1,8 @@
 package it.unibo.big.streamanalysis.algorithm.app.common
 
-import it.unibo.big.streamanalysis.algorithm.debug.DebugWriter
-import it.unibo.big.streamanalysis.algorithm.debug.DebugWriter.LastPaneStatistics
+import it.unibo.big.streamanalysis.algorithm.app.ExecutionConfiguration
+import it.unibo.big.streamanalysis.algorithm.statistics.StatisticsWriter
+import it.unibo.big.streamanalysis.algorithm.statistics.StatisticsWriter.LastPaneStatistics
 import it.unibo.big.streamanalysis.algorithm.generation.countdistinct.CountDistinct.getDataAsNullValue
 import it.unibo.big.streamanalysis.algorithm.generation.countdistinct.ShlosserEstimator
 import it.unibo.big.streamanalysis.algorithm.naive.NaiveQueriesExecutor
@@ -41,10 +42,10 @@ object WindowedQueryExecution {
    * @param simulationConfiguration the simulation configuration
    * @param setState the function to set the state of the algorithm starting from the naive configuration and the algorithm configurations and the current configuration (default is that each algorithm have its own state)
    */
-  def compute(data: Iterator[Record], configurations: Map[ConfigurationSetting, (Option[NaiveConfiguration], Seq[StreamAnalysisConfiguration])],
+  def compute(data: Iterator[Record], configurations: Map[ExecutionConfiguration, (Option[NaiveConfiguration], Seq[StreamAnalysisConfiguration])],
               simulationConfiguration: SimulationConfiguration,
               setState: (Option[State], Map[StreamAnalysisConfiguration, State], AlgorithmConfiguration) => State = StateUtils.OwnState.setState): Unit = {
-    //require that all the configurations have the same window duration and slide duration and pattern and inputSimulationFile
+    //require that all the configurations have the same window duration and slide duration and k and inputSimulationFile
     require(configurations.nonEmpty)
     configurations.foreach{
       case (sett, (n, algorithmConfigurations)) =>
@@ -114,7 +115,7 @@ object WindowedQueryExecution {
                     LOGGER.debug(r.mkString("|"))
                   })
 
-                  DebugWriter.writeDatasetStatistics(window, dataDimensions, if (naiveSelectedQuery.isDefined) Some(lastPaneStatistics._2) else None, simulationConfiguration)
+                  StatisticsWriter.writeDatasetStatistics(window, dataDimensions, if (naiveSelectedQuery.isDefined) Some(lastPaneStatistics._2) else None, simulationConfiguration)
                 }
               } catch {
                 case e: Exception =>
@@ -127,7 +128,7 @@ object WindowedQueryExecution {
   }
 
     /**
-   * Simulate the given query pattern
+   * Simulate with the given parameters
    * @param dataset the dataset
    * @param windowDuration the window duration
    * @param slideDuration the slide duration
@@ -137,7 +138,7 @@ object WindowedQueryExecution {
    * @param availableTime the available time for the simulation
    */
   def simulate(dataset: Dataset, windowDuration: Long, slideDuration: Long, numberOfWindowsToConsider: Int,
-               stateType: StateType, configurations: Map[ConfigurationSetting, (Option[NaiveConfiguration], Seq[StreamAnalysisConfiguration])], availableTime: Long): Unit = {
+               stateType: StateType, configurations: Map[ExecutionConfiguration, (Option[NaiveConfiguration], Seq[StreamAnalysisConfiguration])], availableTime: Long): Unit = {
     val path = dataset.path(stateType)
 
     val simulationConfiguration = SimulationConfiguration(dataset,

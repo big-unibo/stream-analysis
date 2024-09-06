@@ -1,6 +1,6 @@
 package it.unibo.big.streamanalysis.algorithm.execution
 
-import it.unibo.big.streamanalysis.algorithm.debug.DebugWriter
+import it.unibo.big.streamanalysis.algorithm.statistics.StatisticsWriter
 import it.unibo.big.streamanalysis.algorithm.generation.choosing.Knapsack
 import it.unibo.big.streamanalysis.algorithm.generation.choosing.ScoreUtils._
 import it.unibo.big.streamanalysis.algorithm.state.{QueryResultSimplified, QueryStatisticsInPane, State}
@@ -39,21 +39,21 @@ object QueryExecution {
     algorithmState.getTimeStatistics.addTimeForChooseQueries(System.currentTimeMillis() - time)
     val usedTime = queriesStatisticsTime + AVAILABLE_TIME_EXTRA
     val availableTime = simulationConfiguration.availableTime - usedTime
-    val timeForQueryComputation = configuration.timeForQueryComputation(simulationConfiguration, configuration.pattern.numberOfDimensions, availableTime)
+    val timeForQueryComputation = configuration.timeForQueryComputation(simulationConfiguration, configuration.k, availableTime)
     //subtract a query computation time for knapsack execution
-    val numberOfQueriesToExecuteTmp = math.max(math.floor((availableTime - (if(configuration.knapsack.nonEmpty) timeForQueryComputation else 0L)) / timeForQueryComputation).toInt, 0)
+    val numberOfQueriesToExecuteTmp = math.max(math.floor((availableTime - (if(configuration.knapsack) timeForQueryComputation else 0L)) / timeForQueryComputation).toInt, 0)
     val numberOfQueriesToExecute = if(configuration.singleQuery) math.min(numberOfQueriesToExecuteTmp, 1) else numberOfQueriesToExecuteTmp
     if(numberOfQueriesToExecute <= 0) {
       LOGGER.error(s"Number of queries to execute must be greater than 0, " +
         s"but it is $numberOfQueriesToExecute for available time $availableTime/${simulationConfiguration.availableTime} " +
-        s"input file = ${simulationConfiguration.dataset.fileName} and dimensions = ${configuration.pattern.numberOfDimensions}")
+        s"input file = ${simulationConfiguration.dataset.fileName} and dimensions = ${configuration.k}")
       if(writeDebug) {
-        DebugWriter.writeStatistics(simulationConfiguration, algorithmState, inputQuery, window, System.currentTimeMillis() - startTime, inputQuery, data, 0)
+        StatisticsWriter.writeStatistics(simulationConfiguration, algorithmState, inputQuery, window, System.currentTimeMillis() - startTime, inputQuery, data, 0)
       }
       return (inputQuery, 0)
     }
 
-    val queriesToExecute = if(configuration.knapsack.nonEmpty) {
+    val queriesToExecute = if(configuration.knapsack) {
       LOGGER.info(s"Using knapsack to choose queries $configuration")
       val startKnapsackTime = System.currentTimeMillis()
       val queriesToExecute = Knapsack.apply(sortedQueries, maxNumberOfRecords, configuration, numberOfQueriesToExecute, timeForQueryComputation)
@@ -75,7 +75,7 @@ object QueryExecution {
     val realNumberOfQueries = math.max(executedQueries, numberOfQueriesToExecute)
 
     if(writeDebug) {
-      DebugWriter.writeStatistics(simulationConfiguration, algorithmState, selectedQuery.map(_._1), window, totalTime, inputQuery, data, realNumberOfQueries)
+      StatisticsWriter.writeStatistics(simulationConfiguration, algorithmState, selectedQuery.map(_._1), window, totalTime, inputQuery, data, realNumberOfQueries)
     }
     //reset the time statistics
     algorithmState.getTimeStatistics.reset()
@@ -104,7 +104,7 @@ object QueryExecution {
    * @param inputQuery        the input query (if present)
    * @param queriesToExecute   the queries to execute, with their statistics. Already sorted.
    * @param numberOfQueriesToExecute the number of queries to execute
-   * @return the new selected query with the total SOP (if present) and the number of executed queries
+   * @return the new selected query with the total score (if present) and the number of executed queries
    */
   private def executeQueries(algorithmState: State,
                              window: Window, data: Seq[Record],
@@ -167,7 +167,7 @@ object QueryExecution {
    * @return true if the query can be executed considering the time
    */
   private def canExecuteQueryConsideringTime(simulationConfiguration: SimulationConfiguration, configuration: StreamAnalysisConfiguration, actualUsedTime: Long, numberOfExecutedQueries: Int): Boolean = {
-    val canExecuteTmp = (actualUsedTime + configuration.timeForQueryComputation(simulationConfiguration, configuration.pattern.numberOfDimensions, simulationConfiguration.availableTime - actualUsedTime)) < simulationConfiguration.availableTime
+    val canExecuteTmp = (actualUsedTime + configuration.timeForQueryComputation(simulationConfiguration, configuration.k, simulationConfiguration.availableTime - actualUsedTime)) < simulationConfiguration.availableTime
     if(configuration.singleQuery && numberOfExecutedQueries >= 1) false else canExecuteTmp
   }
 

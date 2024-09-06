@@ -7,45 +7,41 @@ import ExecutionUtils.{AS1, ASE, ASKE, Naive}
 object AlgorithmsExecution extends App {
   //For most of the configurations execute only ASKE
   private val alphasConfigurations = Seq(
-    ExecutionConfiguration(alpha = 0.25, groupBySet = 2, maxRecordsStatePercentage = Set(0.05), maxRecordsQueries = 0.05, algorithms = Set(ASKE)),
-    ExecutionConfiguration(alpha = 0.75, groupBySet = 2, maxRecordsStatePercentage = Set(0.05), maxRecordsQueries = 0.05, algorithms = Set(ASKE)))
+    ExecutionConfiguration(alpha = 0.25, k = 2, stateCapacities = Set(0.05), algorithms = Set(ASKE)),
+    ExecutionConfiguration(alpha = 0.75, k = 2, stateCapacities = Set(0.05), algorithms = Set(ASKE)))
 
   private val groupByConfigurations = Seq(ExecutionConfiguration(alpha = 0.5,
-    groupBySet = 3,
-    maxRecordsStatePercentage = Set(0.05),
-    maxRecordsQueries = 0.05,
+    k = 3,
+    stateCapacities = Set(0.05),
     algorithms = Set(ASKE)
   ))
 
   private val stateCapacityConfigurations = Set(0.01, 0.025, 0.05, 0.075, 0.1)
-    .map(sc => ExecutionConfiguration(alpha = 0.5, groupBySet = 2, maxRecordsStatePercentage = Set(sc), maxRecordsQueries = sc, algorithms = Set(ASKE))).toSeq ++
-    Seq(ExecutionConfiguration(alpha = 0.5, groupBySet = 2, maxRecordsStatePercentage = Set(0.05), maxRecordsQueries = 0.05, algorithms = Set(ASE, AS1, Naive)))
+    .map(sc => ExecutionConfiguration(alpha = 0.5, k = 2, stateCapacities = Set(sc), algorithms = Set(ASKE))).toSeq ++
+    Seq(ExecutionConfiguration(alpha = 0.5, k = 2, stateCapacities = Set(0.05), algorithms = Set(ASE, AS1, Naive)))
 
   ExecutionUtils(alphasConfigurations ++ groupByConfigurations ++ stateCapacityConfigurations, syntheticDatasets)
 
   ExecutionUtils(Seq(ExecutionConfiguration(
     alpha = 0.5,
     groupBySet = 2,
-    maxRecordsStatePercentage = Set(),
-    maxRecordsQueries = 1,
+    maximumQueryCardinality = 1,
     algorithms = Set(Naive)
   )), numberOfWindowsToConsider = _ => 3, datasets = syntheticDatasets)
 
   //knapsack tests
   ExecutionUtils(Seq(ExecutionConfiguration(
     alpha = 0.5,
-    groupBySet = 2,
-    maxRecordsStatePercentage = Set(0.05),
-    maxRecordsQueries = 0.05,
+    k = 2,
+    stateCapacities = Set(0.05),
     algorithms = Set(ASKE, ASE, AS1, Naive)
   )), datasets = syntheticKnapsackDatasets, numberOfWindowsToConsider = _ => 30)
 
   private val frequencies = Seq(1, 2, 5) ++ Seq.range(20, 70, 10) // here filter 10 in order to have no duplicates with the other tests
   frequencies.foreach(f => ExecutionUtils(Seq(ExecutionConfiguration(
     alpha = 0.5,
-    groupBySet = 2,
-    maxRecordsStatePercentage = Set(0.05),
-    maxRecordsQueries = 0.05,
+    k = 2,
+    stateCapacities = Set(0.05),
     algorithms = Set(ASKE)
   )), datasets = Seq(Synthetic("full_sim")), frequency = f))
 
@@ -55,9 +51,8 @@ object AlgorithmsExecution extends App {
     val numberOfPanes = 50000 / p
     ExecutionUtils(Seq(ExecutionConfiguration(
       alpha = 0.5,
-      groupBySet = 2,
-      maxRecordsStatePercentage = Set(0.05),
-      maxRecordsQueries = 0.05,
+      k = 2,
+      stateCapacities = Set(0.05),
       algorithms = Set(ASKE)
     )), numberOfPanes = numberOfPanes, numberOfRecordsPane = p, numberOfWindowsToConsider = _  => numberOfPanes * 3, datasets = Seq(Synthetic("full_sim")))
   })

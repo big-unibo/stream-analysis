@@ -17,13 +17,13 @@ def process_df(df):
                 (df["alpha"] == alpha) &
                 (df["windowDuration"] == window_duration) &
                 (df["slideDuration"] == slide_duration) &
-                (df["pattern.numberOfDimensions"] == number_of_dimensions) &
+                (df["k"] == number_of_dimensions) &
                 (df["inputFile"].str.contains("knapsack") == False) &
-                (np.isclose(df['state_records_percentage'], df["percentageOfRecordsInQueryResults"], atol=tolerance)) &
+                (np.isclose(df['stateCapacity'], df["maximumQueryCardinalityPercentage"], atol=tolerance)) &
                 (df["frequency"] == frequency)
             ]
 
-grouping_columns = ["dataset", "inputFile", "percentageOfRecordsInQueryResults", "state_records_percentage"]
+grouping_columns = ["dataset", "inputFile", "maximumQueryCardinalityPercentage", "stateCapacity"]
 result = get_queries_statistics_by_time(process_df, grouping_columns)
 
 def aggregate(df, columns):
@@ -37,12 +37,12 @@ def aggregate(df, columns):
 result_file = aggregate(result, grouping_columns)
 
 measures = ["SM", "QM", "TM", "VM"]
-x = "state_records_percentage"
-graph_lines = "percentageOfRecordsInQueryResults"
+x = "stateCapacity"
+graph_lines = "maximumQueryCardinalityPercentage"
 x_label = f"$\eta$"
 lines_label = "Max result card \%"
 
-result_dataset = aggregate(result_file, ["dataset", "percentageOfRecordsInQueryResults", "state_records_percentage"])
+result_dataset = aggregate(result_file, ["dataset", "maximumQueryCardinalityPercentage", "stateCapacity"])
 
 def plotPaper(df):
     set_font()

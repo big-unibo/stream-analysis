@@ -51,11 +51,11 @@ def algorithm_name(row):
 def process_df(df):
     df = df[
         (df['alpha'] == alpha) &
-        ((np.isclose(df['state_records_percentage'], state_records_percentage, atol=tolerance)) | (df["isNaive"] == True)) &
+        ((np.isclose(df['stateCapacity'], state_records_percentage, atol=tolerance)) | (df["isNaive"] == True)) &
         (df["windowDuration"] == window_duration) &
         (df["slideDuration"] == slide_duration) &
-        (df["pattern.numberOfDimensions"] == number_of_dimensions) &
-        (df["percentageOfRecordsInQueryResults"] == percentage_records) &
+        (df["k"] == number_of_dimensions) &
+        (df["maximumQueryCardinalityPercentage"] == percentage_records) &
         (df["frequency"] == frequency)
        # (df["inputFile"].str.contains("knapsack") == False)
     ]
@@ -64,9 +64,9 @@ def process_df(df):
 
 grouping_columns = ["dataset", "inputFile", "algorithm_name"]
 df = get_queries_statistics_by_time(process_df, grouping_columns)
-df["VM"] = df.apply(lambda r: (r['lastPaneRealRecords_sum'] / (r["lastPaneRecords_max"] * state_records_percentage) if r["lastPaneRecords_max"] > 0 else 0) if r["algorithm_name"] == naiveAlgorithm else r["VM"], axis = 1)
+df["VM"] = df.apply(lambda r: (r['queryCardinalityLastPane_sum'] / (r["lastPaneRecords_max"] * state_records_percentage) if r["lastPaneRecords_max"] > 0 else 0) if r["algorithm_name"] == naiveAlgorithm else r["VM"], axis = 1)
 
-y = "SOPSupport_sel_avg"
+y = "support_sel_avg"
 y_label = "$supp(w_i.q^*)$"
 x = "time"
 graph_lines = "algorithm_name"
@@ -76,8 +76,8 @@ lines_label = "Algorithm"
 plot_one_meas(df[df['dataset'] == "$D_{syn-k}$"], x, x_label, y, y_label, "dataset", graph_lines, lines_label, "inputFile", "change_sel", markers, line_styles, colors)
 
 aggregations = {
-                'SOP_sel_avg': 'mean',
-                #'SOPSupport_sel_avg': 'mean',
+                'score_sel_avg': 'mean',
+                #'support_sel_avg': 'mean',
                 #'change_sel': 'mean',
                 'SM': 'mean',
                 'QM': 'mean',

@@ -1,4 +1,4 @@
-package it.unibo.big.streamanalysis.algorithm.debug
+package it.unibo.big.streamanalysis.algorithm.statistics
 
 import it.unibo.big.streamanalysis.input.GPSJConcepts.GPQuery
 import it.unibo.big.streamanalysis.input.RecordModeling.{Record, Window}
@@ -9,7 +9,7 @@ import it.unibo.big.streamanalysis.algorithm.state.State
 import it.unibo.big.streamanalysis.utils.FileWriter
 import org.slf4j.{Logger, LoggerFactory}
 
-object DebugWriter {
+object StatisticsWriter {
 
   type LastPaneStatistics = (Int, Map[String, DimensionStatistic], Map[(String, String), Double])
 
@@ -31,9 +31,9 @@ object DebugWriter {
     val numberOfAttributes = data.flatMap(_.data.keySet).distinct.size
     val queriesWithTotalScore: QueriesWithStatistics = state.getQueries(window.paneTime)
     //write file statistics
-    val statistics: Seq[DebugQueryStatistics] = queriesWithTotalScore.map {
+    val statistics: Seq[SimulationStatistics] = queriesWithTotalScore.map {
       case (q, _) =>
-        DebugQueryStatistics(
+        SimulationStatistics(
           window = window,
           simulationConfiguration = simulationConfiguration,
           query = q,

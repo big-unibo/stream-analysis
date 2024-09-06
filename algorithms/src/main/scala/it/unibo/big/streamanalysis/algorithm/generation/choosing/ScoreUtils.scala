@@ -41,32 +41,32 @@ object ScoreUtils {
 
   /**
    * Define a case class to hold the score in the pane
-   * @param fdsScore the score of the functional dependencies
-   * @param supportScore the score of the support
+   * @param similarity the similarity of the query
+   * @param support the support of the query
    * @param lastPaneSupport the support of the query in the last pane
    * @param paneTime the pane time
    * @param configuration the configuration
    */
-  case class Score(private var fdsScore: Double, private var supportScore: Double, private var lastPaneSupport: Double, paneTime: Long, configuration: AlgorithmConfiguration) {
-    checkValues(fdsScore, supportScore, lastPaneSupport)
+  case class Score(private var similarity: Double, private var support: Double, private var lastPaneSupport: Double, paneTime: Long, configuration: AlgorithmConfiguration) {
+    checkValues(similarity, support, lastPaneSupport)
     private var valueTmp: Double = 0D
     calculateValue()
 
     private def calculateValue() : Unit = {
-      valueTmp = configuration.alpha * supportScore + configuration.beta * fdsScore
+      valueTmp = configuration.alpha * support + (1 - configuration.alpha) * similarity
     }
 
 
-    private def checkValues(totalFDS: Double, totalSupport: Double, lastPaneSupport: Double) : Unit = {
-      require(totalFDS >= 0 && totalFDS <= 1, "the value of functional dependencies must be in [0,1]")
-      require(totalSupport >= 0 && totalSupport <= 1, s"the value of support must be in [0,1] but is $totalSupport")
-      require(lastPaneSupport >= 0 && lastPaneSupport <= 1, s"the value of support must be in [0,1] but is $lastPaneSupport")
+    private def checkValues(similarity: Double, support: Double, lastPaneSupport: Double) : Unit = {
+      require(similarity >= 0 && similarity <= 1, "The similarity must be in [0,1]")
+      require(support >= 0 && support <= 1, s"The support must be in [0,1] but is $support")
+      require(lastPaneSupport >= 0 && lastPaneSupport <= 1, s"The support in the last pane in [0,1] but is $lastPaneSupport")
     }
 
     def updateSupports(newSupports: Map[Long, Double]): Score = {
-      supportScore = Score.getWeightedValuesForLastPane(newSupports, paneTime)
+      support = Score.getWeightedValuesForLastPane(newSupports, paneTime)
       lastPaneSupport = newSupports(paneTime)
-      checkValues(fdsScore, supportScore, lastPaneSupport)
+      checkValues(similarity, support, lastPaneSupport)
       calculateValue()
       this
     }
@@ -76,9 +76,9 @@ object ScoreUtils {
      */
     def value: Double = valueTmp
 
-    def fdValue: Double = fdsScore
+    def similarityValue: Double = similarity
 
-    def supportValue: Double = supportScore
+    def supportValue: Double = support
 
     def paneSupport : Double = lastPaneSupport
   }
@@ -107,7 +107,7 @@ object ScoreUtils {
      * @param paneTime the pane time
      * @param q the query
      * @param support the support of the query in the last pane
-     * @param gamma the gamma value for weight fds
+     * @param gamma the gamma value for weight for calculate affinity
      * @param queryCardinalities the cardinalities of the queries in each pane
      * @param fdLastPane the functional dependencies of the last pane (at paneTime), if not provided is taken from the status (if present)
      * @return the score of the query
@@ -117,20 +117,20 @@ object ScoreUtils {
       //iterate throw all times in the state to obtain the score
       val stateFD = algorithmState.getFDSForEachTimeStamp
       val fdMap : Map[Long, Map[(String, String), Double]] = stateFD + (paneTime -> stateFD.getOrElse(paneTime, fdLastPane))
-      val fdsState = fdMap.mapValues(getFdScore(inputQuery, q, _)).collect{
+      val queriesSimilarities = fdMap.mapValues(getFdScore(inputQuery, q, _)).collect{
         case (t, scores) if scores.nonEmpty =>
-          val averageFDS = scores.toSeq.map(_.score).sum / scores.size
+          val queryFDS = scores.toSeq.map(_.score).sum / scores.size
           val cardinalityQ = util.Try(queryCardinalities(t)(q)).toOption
           val cardinalityInput = util.Try(queryCardinalities(t)(inputQuery.get)).toOption
           if(cardinalityInput.isDefined && cardinalityQ.isDefined) {
-            var queryCompatibility = List(cardinalityInput.get.toDouble / cardinalityQ.get.toDouble, cardinalityQ.get.toDouble / cardinalityInput.get.toDouble)
+            var queryAffinity = List(cardinalityInput.get.toDouble / cardinalityQ.get.toDouble, cardinalityQ.get.toDouble / cardinalityInput.get.toDouble)
               .map(x => if(x.isNaN || x.isInfinity) 0D else x).min
-            if(queryCompatibility > 1) {
-              LOGGER.warn(s"queryCompatibility is higher than 1 for $inputQuery and $q with countd q = $cardinalityQ countd input = $cardinalityInput, setting to 1")
-              queryCompatibility = 1
+            if(queryAffinity > 1) {
+              LOGGER.warn(s"Affinity is higher than 1 for $inputQuery and $q with countd q = $cardinalityQ countd input = $cardinalityInput, setting to 1")
+              queryAffinity = 1
             }
-            require(queryCompatibility >= 0 && queryCompatibility <= 1, s"queryCompatibility must be in [0,1] but is $queryCompatibility")
-            t -> Some(gamma * averageFDS + (1 - gamma) * queryCompatibility)
+            require(queryAffinity >= 0 && queryAffinity <= 1, s"Affinity must be in [0,1] but is $queryAffinity")
+            t -> Some(gamma * queryFDS + (1 - gamma) * queryAffinity)
           } else {
             t -> None
           }
@@ -138,18 +138,18 @@ object ScoreUtils {
 
       var stateSupports = algorithmState.getSupports(q, Some(paneTime))
       if(support.isDefined) { stateSupports += (paneTime -> support.get) }
-      Score(Score.getWeightedValuesForLastPane(fdsState, paneTime), Score.getWeightedValuesForLastPane(stateSupports, paneTime), stateSupports(paneTime), paneTime, configuration)
+      Score(Score.getWeightedValuesForLastPane(queriesSimilarities, paneTime), Score.getWeightedValuesForLastPane(stateSupports, paneTime), stateSupports(paneTime), paneTime, configuration)
     }
   }
 
   /**
    * Sort the queries by total score (descending) and number of estimated number of records (ascending)
-   * @param queriesWithTotalScore the map of queries with SOP
+   * @param queriesWithScore the map of queries with score
    * @param scoringFactor a function that for a given query return the first scoring factor (default is equal for every query to 0)
-   * @return the sorted queries with SOP
+   * @return the sorted queries with score
    */
-  def sortQueries(queriesWithTotalScore: QueriesWithStatistics, scoringFactor: GPQuery => Int = _ => 0): Seq[(GPQuery, QueryStatisticsInPane)] = {
-    queriesWithTotalScore.toSeq.sortBy {
+  def sortQueries(queriesWithScore: QueriesWithStatistics, scoringFactor: GPQuery => Int = _ => 0): Seq[(GPQuery, QueryStatisticsInPane)] = {
+    queriesWithScore.toSeq.sortBy {
       case (q, QueryStatisticsInPane(_, estimatedRecords, totalScore, _, _)) => (scoringFactor(q), -totalScore.value, estimatedRecords, q.dimensions.toSeq.sorted.mkString(",")) //sort by total score (descending) and estimated number of records (ascending)
     }
   }

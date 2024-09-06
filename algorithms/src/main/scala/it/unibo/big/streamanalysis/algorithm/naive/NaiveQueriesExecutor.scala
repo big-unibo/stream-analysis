@@ -1,6 +1,6 @@
 package it.unibo.big.streamanalysis.algorithm.naive
 
-import it.unibo.big.streamanalysis.algorithm.debug.DebugWriter
+import it.unibo.big.streamanalysis.algorithm.statistics.StatisticsWriter
 import it.unibo.big.streamanalysis.algorithm.execution.QueryExecution.executeQuery
 import it.unibo.big.streamanalysis.algorithm.generation.QueryUtils.updateQueriesStatistics
 import it.unibo.big.streamanalysis.algorithm.generation.choosing.ScoreUtils.{getBestQuery, sortQueries}
@@ -29,13 +29,13 @@ object NaiveQueriesExecutor {
     val startTime = System.currentTimeMillis()
     val configuration = algorithmState.configuration
     updateQueriesStatistics(data, algorithmState, previousSelectedQuery, window.paneTime, dimensions, measures, simulationConfiguration)
-    val queriesWithSOP = algorithmState.getQueries(window.paneTime).filter(_._2.exists)
-    LOGGER.info(s"[NAIVE EXECUTING] Executing queries: ${queriesWithSOP.size}), input query: ${previousSelectedQuery.map(_.dimensions.mkString(","))}")
+    val queriesWithScore = algorithmState.getQueries(window.paneTime).filter(_._2.exists)
+    LOGGER.info(s"[NAIVE EXECUTING] Executing queries: ${queriesWithScore.size}), input query: ${previousSelectedQuery.map(_.dimensions.mkString(","))}")
     var availableTime = simulationConfiguration.availableTime - (startTime - System.currentTimeMillis())
-    val numberOfQueriesToExecute = math.max(math.floor(availableTime / configuration.timeForQueryComputation(simulationConfiguration, configuration.pattern.numberOfDimensions, availableTime)).toInt, 0)
+    val numberOfQueriesToExecute = math.max(math.floor(availableTime / configuration.timeForQueryComputation(simulationConfiguration, configuration.k, availableTime)).toInt, 0)
     var executedQueriesConsideringTimeConstraint = 0
 
-    queriesWithSOP.foreach{
+    queriesWithScore.foreach{
       case (q, qs) =>
         LOGGER.debug(s"[NAIVE EXECUTING] Executing query ${q.dimensions}")
         val startExecuteQueryTime = System.currentTimeMillis()
@@ -49,11 +49,11 @@ object NaiveQueriesExecutor {
     }
 
     val timeForChooseQuery = System.currentTimeMillis()
-    val firstExecutedQuery = sortQueries(queriesWithSOP).headOption
+    val firstExecutedQuery = sortQueries(queriesWithScore).headOption
     val selectedQuery = getBestQuery(window.paneTime, algorithmState, previousSelectedQuery, firstExecutedQuery)
     algorithmState.getTimeStatistics.addTimeForChooseQueries(System.currentTimeMillis() - timeForChooseQuery)
     val totalTime =  System.currentTimeMillis() - startTime
-    DebugWriter.writeStatistics(simulationConfiguration, algorithmState, selectedQuery.map(_._1), window, totalTime, previousSelectedQuery, data, math.max(executedQueriesConsideringTimeConstraint, numberOfQueriesToExecute))
+    StatisticsWriter.writeStatistics(simulationConfiguration, algorithmState, selectedQuery.map(_._1), window, totalTime, previousSelectedQuery, data, math.max(executedQueriesConsideringTimeConstraint, numberOfQueriesToExecute))
 
     if(selectedQuery.nonEmpty) {
       algorithmState.compute(window, selectedQuery.get._1)

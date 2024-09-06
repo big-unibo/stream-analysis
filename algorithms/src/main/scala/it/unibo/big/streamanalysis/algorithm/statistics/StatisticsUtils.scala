@@ -1,4 +1,4 @@
-package it.unibo.big.streamanalysis.algorithm.debug
+package it.unibo.big.streamanalysis.algorithm.statistics
 
 import it.unibo.big.streamanalysis.algorithm.state.State
 import it.unibo.big.streamanalysis.input.GPSJConcepts.GPQuery
@@ -6,9 +6,9 @@ import it.unibo.big.streamanalysis.input.RecordModeling.Window
 import it.unibo.big.streamanalysis.input.{AlgorithmConfiguration, NaiveConfiguration, SimulationConfiguration, StreamAnalysisConfiguration}
 
 /**
- * DebugUtils is the object that contains the utility functions for the debug
+ * StatisticsUtils is the object that contains the utility functions for the debug
  */
-object DebugUtils {
+object StatisticsUtils {
 
   /**
    * DebugStatistics is the trait for the debug statistics into files
@@ -56,11 +56,10 @@ object DebugUtils {
       "slideDuration" -> simulationConfiguration.slideDuration,
       "inputFile" -> simulationConfiguration.dataset.fileName,
       "alpha" -> algorithmConfiguration.alpha,
-      "beta" -> algorithmConfiguration.beta,
-      "pattern.numberOfDimensions" -> algorithmConfiguration.pattern.numberOfDimensions,
-      "percentageOfRecordsInQueryResults" -> algorithmConfiguration.percentageOfRecordsInQueryResults,
-      "logFactor" -> getValue(state, _.logFactor).getOrElse(Int.MaxValue),
-      "knapsack" -> getValue(state, _.knapsack.nonEmpty).getOrElse(false),
+      "k" -> algorithmConfiguration.k,
+      "maximumQueryCardinalityPercentage" -> algorithmConfiguration.maximumQueryCardinalityPercentage,
+      "stateCapacity" -> getValue(state, _.stateCapacity).getOrElse(1D),
+      "knapsack" -> getValue(state, _.knapsack).getOrElse(false),
       "numberOfQueriesToExecute" -> numberOfQueriesToExecute,
       "dimensions" -> formattedString(query.dimensions.toSeq.sorted),
       "single" -> single
@@ -93,7 +92,7 @@ object DebugUtils {
    * @return if the state have a configuration that is instance of StreamAnalysisConfiguration, the function fun is applied
    *         and is returned an option with inside the returned value, otherwise None
    */
-  private [debug] def getValue[T](state: State, fun: StreamAnalysisConfiguration => T): Option[T] = {
+  private [statistics] def getValue[T](state: State, fun: StreamAnalysisConfiguration => T): Option[T] = {
     state.configuration match {
       case x: StreamAnalysisConfiguration => Some(fun(x))
       case _: NaiveConfiguration => None
@@ -105,5 +104,5 @@ object DebugUtils {
    * @param seq the sequence of values
    * @return the formatted string
    */
-  private [debug] def formattedString(seq: Seq[Any]): String = seq.mkString(",")
+  private [statistics] def formattedString(seq: Seq[Any]): String = seq.mkString(",")
 }

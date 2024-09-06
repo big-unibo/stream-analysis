@@ -15,16 +15,16 @@ def process_df(df):
     return df[
         (df["isNaive"] == False) &
         (df["knapsack"] == True) &
-        (np.isclose(df['state_records_percentage'], state_records_percentage, atol=tolerance)) &
+        (np.isclose(df['stateCapacity'], state_records_percentage, atol=tolerance)) &
         (df["windowDuration"] == window_duration) &
         (df["slideDuration"] == slide_duration) &
-        (df["pattern.numberOfDimensions"] == number_of_dimensions) &
-        (df["percentageOfRecordsInQueryResults"] == percentage_records) &
+        (df["k"] == number_of_dimensions) &
+        (df["maximumQueryCardinalityPercentage"] == percentage_records) &
         (df["inputFile"].str.contains("knapsack") == False) &
         (df["frequency"] == frequency)
     ]
 
-grouping_columns = ["dataset", "inputFile", "alpha", "beta"]
+grouping_columns = ["dataset", "inputFile", "alpha"]
 
 result = get_queries_statistics_by_time(process_df, grouping_columns)
 
@@ -32,13 +32,13 @@ x = "time"
 graph_lines = "alpha"
 x_label = x
 lines_label = graph_lines
-supp_meas = "SOPSupport_sel_avg"
+supp_meas = "support_sel_avg"
 
 aggregations = {
                    supp_meas: 'mean',
                    'change_sel': 'mean'
                }
-aggr_col = ["dataset", "alpha", "beta", "time"]
+aggr_col = ["dataset", "alpha", "time"]
 result_file = result.groupby(aggr_col + ["inputFile"]).agg(aggregations).reset_index()
 
 def plotPaper(df):

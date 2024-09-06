@@ -1,10 +1,10 @@
-package it.unibo.big.streamanalysis.algorithm.debug
+package it.unibo.big.streamanalysis.algorithm.statistics
 
+import it.unibo.big.streamanalysis.algorithm.statistics.StatisticsUtils.{DebugStatistics, formattedString, getValue}
+import it.unibo.big.streamanalysis.algorithm.state.{QueryStatisticsInPane, State}
 import it.unibo.big.streamanalysis.input.GPSJConcepts.GPQuery
 import it.unibo.big.streamanalysis.input.RecordModeling.Window
-import DebugUtils.{DebugStatistics, formattedString, getValue}
-import it.unibo.big.streamanalysis.algorithm.state.{QueryStatisticsInPane, State}
-import it.unibo.big.streamanalysis.input.{ConfigurationUtils, NaiveConfiguration, SimulationConfiguration}
+import it.unibo.big.streamanalysis.input.{NaiveConfiguration, SimulationConfiguration}
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
@@ -19,7 +19,7 @@ import org.slf4j.{Logger, LoggerFactory}
  * @param numberOfAttributes the number of attributes in the data
  * @param numberOfQueriesToExecute the number of queries to execute
  */
-case class DebugQueryStatistics(window: Window,
+case class SimulationStatistics(window: Window,
                                 simulationConfiguration: SimulationConfiguration,
                                 query: GPQuery, previousChosenQuery: Option[GPQuery], selectedQuery: Option[GPQuery],
                                 state: State, totalTime: Long, numberOfAttributes: Int, numberOfQueriesToExecute: Int) extends DebugStatistics {
@@ -34,43 +34,27 @@ case class DebugQueryStatistics(window: Window,
   private val queryStored = sortedStatistics.map(x => x._2.exists(_.isStored == true))
   //If q is the selected query, calculate the similarity between q and the previous query
   private val timeStatistics = state.getTimeStatistics
-  private val numberOfPanes = state.numberOfPanes
 
-  private val maxNumberOfRecords = stats.map {
-    case (t, stat) => t -> getValue(state, c => ConfigurationUtils.getMaximumNumberOfRecordsToStore(stat.flatMap(_.inputRecords).getOrElse(0), c.logFactor))
-  }.toSeq.sortBy(_._1)
-
-  private val SOPSupport = lastPaneStatistics.score.supportValue
-  private val SOPFd = lastPaneStatistics.score.fdValue
-  if(math.abs((algorithmConfiguration.alpha * SOPSupport + algorithmConfiguration.beta * SOPFd) - lastPaneStatistics.score.value) > 0.001) {
-    LOGGER.warn(s"Score ${lastPaneStatistics.score.value} is not equal to ${algorithmConfiguration.alpha} * $SOPFd + ${algorithmConfiguration.beta} * $SOPSupport")
+  if(math.abs((algorithmConfiguration.alpha * lastPaneStatistics.score.supportValue + (1 - algorithmConfiguration.alpha) * lastPaneStatistics.score.similarityValue) - lastPaneStatistics.score.value) > 0.001) {
+    LOGGER.warn(s"Score ${lastPaneStatistics.score.value} is not equal to ${algorithmConfiguration.alpha} * ${lastPaneStatistics.score.supportValue} + ${1 - algorithmConfiguration.alpha} * ${lastPaneStatistics.score.similarityValue}")
   }
 
-  private val lastPaneMaxNumberOfRecords = util.Try(maxNumberOfRecords.last._2.get.asInstanceOf[Any]).toOption
+  private val lastPaneMaxNumberOfRecords = lastPaneStatistics.inputRecords.map(x => getValue(state, _.getMaximumOfRecordsToStore(x))).getOrElse(0)
 
   override val data: Seq[(String, Any)] = super.data ++ Map(
     "selected" -> selectedQuery.contains(query),
     "executed" -> lastPaneStatistics.isExecuted,
     "stored" -> lastPaneStatistics.isStored,
-    "notChange" -> (selectedQuery.contains(query) && previousChosenQuery == selectedQuery),
-    "SOP" -> lastPaneStatistics.score.value,
-    "SOPSupport" -> SOPSupport,
-    "SOPFd" -> SOPFd,
-    "percentageOfExecutedPanes" -> queryExecuted.count(_ == true).toDouble / numberOfPanes * 100,
-    "percentageOfStoredPanes" -> queryStored.count(_ == true).toDouble / numberOfPanes * 100,
-    "executedPanes" -> formattedString(queryExecuted),
-    "storedPanes" -> formattedString(queryStored),
-    "querySupportLastPaneEstimated" -> lastPaneStatistics.score.paneSupport,
-    "querySupportLastPaneReal" -> lastPaneStatistics.realSupport,
-    "estimatedNumberOfRecordsPanes" -> formattedString(sortedStatistics.map(_._2.map(_.estimatedNumberOfRecords).getOrElse(0D))),
-    "executionTimePanes" -> formattedString(sortedStatistics.map(_._2.flatMap(_.getExecutionTime).getOrElse(0D))),
-    "numberOfRecordsPanes" -> formattedString(sortedStatistics.map(_._2.flatMap(_.inputRecords).getOrElse(0D))),
-    "lastPaneEstRecords" -> lastPaneStatistics.estimatedNumberOfRecords,
-    "lastPaneRealRecords" -> lastPaneStatistics.realNumberOfRecords.getOrElse(0),
-    "lastPaneExecutionTime" -> lastPaneStatistics.getExecutionTime.getOrElse(0D),
+    "score" -> lastPaneStatistics.score.value,
+    "support" -> lastPaneStatistics.score.supportValue,
+    "similarity" -> lastPaneStatistics.score.similarityValue,
+    "supportLastPaneEstimated" -> lastPaneStatistics.score.paneSupport,
+    "supportLastPaneReal" -> lastPaneStatistics.realSupport,
+    "queryCardinalityLastPane" -> lastPaneStatistics.realNumberOfRecords.getOrElse(0),
+    "queryExecutionTime" -> lastPaneStatistics.getExecutionTime.getOrElse(0D),
+    "queryEstimatedTime" -> lastPaneStatistics.estimatedTime,
     "lastPaneRecords" -> lastPaneStatistics.inputRecords.getOrElse(0),
-    "panesMaxRecords" -> formattedString(maxNumberOfRecords.map(x => x._2.getOrElse(Int.MaxValue))),
-    "lastPaneMaxRecords" -> lastPaneMaxNumberOfRecords.orNull,
+    "lastPaneMaxRecords" -> lastPaneMaxNumberOfRecords,
     "totalTime" -> totalTime,
     "isNaive" ->  algorithmConfiguration.isInstanceOf[NaiveConfiguration],
     "timeForUpdateWindow" -> timeStatistics.getTimeForUpdateWindow,
@@ -80,11 +64,10 @@ case class DebugQueryStatistics(window: Window,
     "timeForScoreComputation" -> timeStatistics.getTimeForScoreComputation,
     "timeForChooseQueries" -> timeStatistics.getTimeForChooseQueries,
     "timeForQueryExecution" -> timeStatistics.getTimeForQueryExecution,
-    "queriesInPane" -> state.getQueriesInPane(window.paneTime).size,
+    "feasibleQueries" -> state.getQueriesInPane(window.paneTime).size,
     "measures" -> query.measures.size,
     "numberOfAttributes" -> numberOfAttributes,
     "availableTime" -> simulationConfiguration.availableTime,
-    "frequency" -> simulationConfiguration.frequency,
-    "estimatedTime" -> lastPaneStatistics.estimatedTime
+    "frequency" -> simulationConfiguration.frequency
   ).toSeq.sortBy(_._1)
 }

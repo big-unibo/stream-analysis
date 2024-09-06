@@ -50,13 +50,6 @@ object GPSJConcepts {
     override def hashCode(): Int = dimensions.hashCode()
   }
 
-  /**
-   * Query pattern class
-   * @param numberOfDimensions the number of dimensions of the query
-   * @param maxRecords the maximum number of records to return, if specified the query is a top-k query
-   */
-  case class QueryPattern(numberOfDimensions: Int, maxRecords: Option[Int])
-
   object Operators {
     /**
      * Aggregation operator

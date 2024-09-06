@@ -21,11 +21,11 @@ def process_df_freq(df):
                 (df["alpha"] == alpha) &
                 (df["windowDuration"] == window_duration) &
                 (df["slideDuration"] == slide_duration) &
-                (df["pattern.numberOfDimensions"] == number_of_dimensions) &
-                (np.isclose(df['state_records_percentage'], state_records_percentage, atol=tolerance)) &
-                (df["percentageOfRecordsInQueryResults"] == percentage_records) &
+                (df["k"] == number_of_dimensions) &
+                (np.isclose(df['stateCapacity'], state_records_percentage, atol=tolerance)) &
+                (df["maximumQueryCardinalityPercentage"] == percentage_records) &
                 (df["inputFile"] == "full_sim.csv") &
-                (np.isclose(df['state_records_percentage'], df["percentageOfRecordsInQueryResults"], atol=tolerance))
+                (np.isclose(df['maximumQueryCardinalityPercentage'], df["stateCapacity"], atol=tolerance))
             ]
 
 def process_df_panes(df):
@@ -35,11 +35,11 @@ def process_df_panes(df):
                 (df["alpha"] == alpha) &
                 (df["windowDuration"] == window_duration) &
                 (df["frequency"] == 10) &
-                (df["pattern.numberOfDimensions"] == number_of_dimensions) &
+                (df["k"] == number_of_dimensions) &
                 (df["inputFile"] == "full_sim.csv") &
-                (np.isclose(df['state_records_percentage'], state_records_percentage, atol=tolerance)) &
-                (df["percentageOfRecordsInQueryResults"] == percentage_records) &
-                (np.isclose(df['state_records_percentage'], df["percentageOfRecordsInQueryResults"], atol=tolerance))
+                (np.isclose(df['stateCapacity'], state_records_percentage, atol=tolerance)) &
+                (df["maximumQueryCardinalityPercentage"] == percentage_records) &
+                (np.isclose(df['maximumQueryCardinalityPercentage'], df["stateCapacity"], atol=tolerance))
             ]
 
 grouping_columns_frequency = ["inputFile", "frequency"]

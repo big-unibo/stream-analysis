@@ -117,12 +117,12 @@ object QueryUtils {
    * @param dimensions the dimensions of the data
    * @param measures the measures of the data
    * @param simulationConfiguration the simulation configuration
-   * @return the the map of queries with SOP
+   * @return the the map of queries with score
    */
   def updateQueriesStatistics(data: Seq[Record], algorithmState: State, inputQuery: Option[GPQuery], paneTime: Long, dimensions: Set[String], measures: Set[String], simulationConfiguration: SimulationConfiguration): Unit = {
     val startTime = System.currentTimeMillis()
     val configuration = algorithmState.configuration
-    val calculateStatisticsJustForInputQuery = configuration.isInstanceOf[NaiveConfiguration] && configuration.percentageOfRecordsInQueryResults == 1D
+    val calculateStatisticsJustForInputQuery = configuration.isInstanceOf[NaiveConfiguration] && configuration.maximumQueryCardinalityPercentage == 1D
     var time = System.currentTimeMillis()
     val (dimensionVsDimensionStatistics, allDimensionsStatistics, functionalDependenciesForTheInputQuery) = ShlosserEstimator.calculateFunctionalDependencies(data, configuration, inputQuery, dimensions, calculateOnlyForInputQuery = calculateStatisticsJustForInputQuery)
     val dimensionsStatistics = if(calculateStatisticsJustForInputQuery) allDimensionsStatistics else allDimensionsStatistics.filter(_._2.isElected)
@@ -134,8 +134,8 @@ object QueryUtils {
     LOGGER.debug(s"Query aggregation: $queryAggregation - elapsed time: ${System.currentTimeMillis() - time}")
 
     time = System.currentTimeMillis()
-    //generate the combinations of dimensions under the query pattern
-    val combinations = dimensionsStatistics.keys.toSeq.combinations(configuration.pattern.numberOfDimensions).toSeq
+    //generate the combinations of dimensions under k attributes in the group by set
+    val combinations = dimensionsStatistics.keys.toSeq.combinations(configuration.k).toSeq
       //if the pair is in the query and not in the dependencies I need to filter the query out
       .filter(dimensions => if(calculateStatisticsJustForInputQuery) true else dimensions.forall(d1 => dimensions.filter(_ > d1).forall(d2 => dimensionVsDimensionStatistics.contains((d1, d2)))))
       //filter based on exclude/include dimensions
@@ -164,7 +164,7 @@ object QueryUtils {
         t = System.currentTimeMillis()
         val score = Score(algorithmState, inputQuery, paneTime, q, Some(support), queryCardinalities, fdLastPane)
         timeForCalculateFdScore += System.currentTimeMillis() - t
-        q -> QueryStatisticsInPane(q, estimatedRecords, score, configuration.timeForQueryComputation(simulationConfiguration, configuration.pattern.numberOfDimensions, simulationConfiguration.availableTime))
+        q -> QueryStatisticsInPane(q, estimatedRecords, score, configuration.timeForQueryComputation(simulationConfiguration, configuration.k, simulationConfiguration.availableTime))
     }
     if(inputQuery.isDefined) {
       if(!queriesWithStatistics.contains(inputQuery.get)) {

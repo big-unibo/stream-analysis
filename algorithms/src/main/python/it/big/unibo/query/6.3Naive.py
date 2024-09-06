@@ -17,8 +17,8 @@ def process_df(df):
                    (df["alpha"] == alpha) &
                    (df["windowDuration"] == window_duration) &
                    (df["slideDuration"] == slide_duration) &
-                   (df["pattern.numberOfDimensions"] == number_of_dimensions) &
-                   (df["percentageOfRecordsInQueryResults"] == percentage_records) &
+                   (df["k"] == number_of_dimensions) &
+                   (df["maximumQueryCardinalityPercentage"] == percentage_records) &
                    (df["inputFile"].str.contains("knapsack") == False) &
                    (df["frequency"] == frequency)
                ]
@@ -26,12 +26,12 @@ def process_df(df):
 df=get_complete_stats_dataframe(process_df)
 
 result = df.groupby(["time", "inputFile", "dataset"]).agg(
-    lastPaneRealRecords_sum=('lastPaneRealRecords','sum'),
+    queryCardinalityLastPane_sum=('queryCardinalityLastPane','sum'),
     totalTime_max=('totalTime','max'),
 ).reset_index()
 
 result['time_usage'] = result["totalTime_max"] / available_time
-result['space_usage'] = result["lastPaneRealRecords_sum"] / space_available
+result['space_usage'] = result["queryCardinalityLastPane_sum"] / space_available
 
 def aggregate(df, columns):
     return df.groupby(columns).agg(
