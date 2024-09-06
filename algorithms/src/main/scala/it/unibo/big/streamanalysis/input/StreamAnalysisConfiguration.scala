@@ -87,7 +87,7 @@ case class StreamAnalysisConfiguration(k: Int,
     getMaximumOfRecordsToStore(data.size)
   }
 
-  override val maximumQueryCardinalityPercentage: Double = stateCapacity
+  override lazy val maximumQueryCardinalityPercentage: Double = stateCapacity
 }
 
 object StreamAnalysisConfiguration {
