@@ -1,7 +1,7 @@
 package it.unibo.big.streamanalysis.algorithm.generation.countdistinct
 
 import it.unibo.big.streamanalysis.algorithm.generation.QueryUtils.{calculateFDsScore, getSample}
-import it.unibo.big.streamanalysis.algorithm.generation.countdistinct.CountDistinct.{filterMapWithCountDistinct, getDataAsNullValue}
+import it.unibo.big.streamanalysis.algorithm.generation.countdistinct.CountDistinctUtils.{filterMapWithCountDistinct, getDataAsNullValue}
 import it.unibo.big.streamanalysis.algorithm.generation.countdistinct.DimensionStatistics.{DimensionStatistic, DimensionVsDimensionStatistic, Statistic}
 import it.unibo.big.streamanalysis.input.AlgorithmConfiguration
 import it.unibo.big.streamanalysis.input.DataDefinition.{Data, NullData}

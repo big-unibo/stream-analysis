@@ -5,9 +5,9 @@ import it.unibo.big.streamanalysis.input.RecordModeling.Record
 import it.unibo.big.streamanalysis.input.{AlgorithmConfiguration, StreamAnalysisConfiguration}
 
 /**
- * CountDistinct is helper module for calculating the count distinct of dimensions
+ * CountDistinctUtils is helper module for calculating the count distinct of dimensions
  */
-object CountDistinct {
+object CountDistinctUtils {
 
   /**
    *

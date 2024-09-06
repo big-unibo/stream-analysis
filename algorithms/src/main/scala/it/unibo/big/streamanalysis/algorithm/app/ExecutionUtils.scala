@@ -143,8 +143,8 @@ object ExecutionConfiguration {
     ExecutionConfiguration(alpha, k, stateCapacities, stateCapacities.min, algorithms)
   }
 
-  def apply(alpha: Double, groupBySet: Int, maximumQueryCardinality: Double, algorithms: Set[ExecutionAlgorithm]): ExecutionConfiguration = {
-    new ExecutionConfiguration(alpha, groupBySet, Set(), maximumQueryCardinality, algorithms)
+  def apply(alpha: Double, k: Int, maximumQueryCardinality: Double, algorithms: Set[ExecutionAlgorithm]): ExecutionConfiguration = {
+    new ExecutionConfiguration(alpha, k, Set(), maximumQueryCardinality, algorithms)
   }
 }
 

@@ -24,18 +24,10 @@ object AlgorithmsExecution extends App {
 
   ExecutionUtils(Seq(ExecutionConfiguration(
     alpha = 0.5,
-    groupBySet = 2,
+    k = 2,
     maximumQueryCardinality = 1,
     algorithms = Set(Naive)
   )), numberOfWindowsToConsider = _ => 3, datasets = syntheticDatasets)
-
-  //knapsack tests
-  ExecutionUtils(Seq(ExecutionConfiguration(
-    alpha = 0.5,
-    k = 2,
-    stateCapacities = Set(0.05),
-    algorithms = Set(ASKE, ASE, AS1, Naive)
-  )), datasets = syntheticKnapsackDatasets, numberOfWindowsToConsider = _ => 30)
 
   private val frequencies = Seq(1, 2, 5) ++ Seq.range(20, 70, 10) // here filter 10 in order to have no duplicates with the other tests
   frequencies.foreach(f => ExecutionUtils(Seq(ExecutionConfiguration(

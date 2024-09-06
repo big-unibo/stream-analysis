@@ -33,5 +33,4 @@ object DatasetsUtils {
 
   private val ranges = Seq(0.2, 0.5, 0.8)
   val syntheticDatasets: Seq[SyntheticDataset] = ranges.flatMap(impact => ranges.map(extension => ChangingSyntheticDataset(impact, extension))) :+ Synthetic("full_sim")
-  val syntheticKnapsackDatasets: Seq[Synthetic] = Seq(1).map(i => Synthetic(s"full_sim_knapsack_0$i"))
 }

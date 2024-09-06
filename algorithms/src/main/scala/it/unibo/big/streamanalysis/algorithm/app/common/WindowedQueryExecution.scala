@@ -3,7 +3,7 @@ package it.unibo.big.streamanalysis.algorithm.app.common
 import it.unibo.big.streamanalysis.algorithm.app.ExecutionConfiguration
 import it.unibo.big.streamanalysis.algorithm.statistics.StatisticsWriter
 import it.unibo.big.streamanalysis.algorithm.statistics.StatisticsWriter.LastPaneStatistics
-import it.unibo.big.streamanalysis.algorithm.generation.countdistinct.CountDistinct.getDataAsNullValue
+import it.unibo.big.streamanalysis.algorithm.generation.countdistinct.CountDistinctUtils.getDataAsNullValue
 import it.unibo.big.streamanalysis.algorithm.generation.countdistinct.ShlosserEstimator
 import it.unibo.big.streamanalysis.algorithm.naive.NaiveQueriesExecutor
 import it.unibo.big.streamanalysis.algorithm.state.StateUtils.StateType

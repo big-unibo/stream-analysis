@@ -70,7 +70,7 @@ object NaiveConfiguration {
  * @param k the number of attributes in the gruop-by set of the queries that can be executed
  * @param alpha the alpha parameter, for weighting the support in the score
  * @param timeForQueryComputation the time for compute a query given a simulation configuration and the remaining time
- * @param knapsack if the knapsack algorithm should be used it is not empty, the double is the percentage of maximum records to add to the knapsack (e.g., 1.5)
+ * @param knapsack if the knapsack algorithm should be used it is true
  * @param stateCapacity the state capacity, percentage in ]0,1]
  * @param singleQuery the algorithm can execute just a query
  */
