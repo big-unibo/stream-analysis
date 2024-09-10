@@ -2,7 +2,7 @@
 
 [![build](https://github.com/big-unibo/stream-analysis#big---project-template-stream-analysis/actions/workflows/build.yml/badge.svg)](https://github.com/big-unibo/stream-analysis#big---project-template-stream-analysis/actions/workflows/build.yml)
 
-## Multi-project gradle structure
+## Project structure
     generator/   -- generator of stream data
     algorithms/  -- stream analysis algorithms implementations
     test/ -- test results
@@ -52,3 +52,12 @@ Windows:
 ```shell
 .\test.bat
 ```
+
+
+Before running please:
+1. make sure that the docker container have enough resources to run the test
+   and modify the **docker run** command in `test.sh` and `test.bat` to allocate the correct resources.
+2. check if the configuration in `algorithms/src/main/resources/analysis_configuration.conf`
+   contains the correct execution times for the queries to be executed (in milliseconds).
+   You can verify the query execution times by running the tests one time and check the
+   value of the column `queryExecutionTime` in the `test/synthetic/{DATASET}/default/stats.csv` file.
