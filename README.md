@@ -1,4 +1,4 @@
-# BIG - Stream Analysis
+# Self-Adaptive Analytical Querying over Schemaless Data Streams
 
 [![build](https://github.com/big-unibo/stream-analysis#big---project-template-stream-analysis/actions/workflows/build.yml/badge.svg)](https://github.com/big-unibo/stream-analysis#big---project-template-stream-analysis/actions/workflows/build.yml)
 
