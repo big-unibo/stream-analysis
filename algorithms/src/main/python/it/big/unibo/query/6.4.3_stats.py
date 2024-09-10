@@ -68,7 +68,7 @@ def plotPaper(df):
             ax2.bar(positions[i], subset[m2].sum(), bar_width, label=v)
         ax1.set_xlabel("Time")
         ax2.set_xlabel(f"$\\alpha$")
-        ax2.set_ylabel("Sum(Query changes)")
+        ax2.set_ylabel("Number of best query changes")
         ax1.set_ylabel("Best query support")
         ax1.set_ylim(0, 1.02)  # Set y-axis limits to 0-1
         ax1.set_xticks([1] + [x for x in range(5, subset[x1].max() + 5, 5)])
