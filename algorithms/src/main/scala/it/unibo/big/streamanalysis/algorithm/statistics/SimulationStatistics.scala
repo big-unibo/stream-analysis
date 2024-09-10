@@ -39,7 +39,7 @@ case class SimulationStatistics(window: Window,
     LOGGER.warn(s"Score ${lastPaneStatistics.score.value} is not equal to ${algorithmConfiguration.alpha} * ${lastPaneStatistics.score.supportValue} + ${1 - algorithmConfiguration.alpha} * ${lastPaneStatistics.score.similarityValue}")
   }
 
-  private val lastPaneMaxNumberOfRecords = lastPaneStatistics.inputRecords.map(x => getValue(state, _.getMaximumOfRecordsToStore(x))).getOrElse(0)
+  private val lastPaneMaxNumberOfRecords = lastPaneStatistics.inputRecords.flatMap(x => getValue(state, _.getMaximumOfRecordsToStore(x))).getOrElse(0)
 
   override val data: Seq[(String, Any)] = super.data ++ Map(
     "selected" -> selectedQuery.contains(query),
