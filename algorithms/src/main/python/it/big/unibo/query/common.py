@@ -352,5 +352,5 @@ def plot_one_meas(df, x, x_label, y, y_label, detail, graph_lines, lines_label, 
         plt.tight_layout()
         fig.subplots_adjust(top=0.89)
 
-        plt.savefig(f"{base_path}/graphs/{d}_{detail}_{x_label}_{y_label}_{graph_lines}_{graphs_value}.png")
+        plt.savefig(f"{base_path}/graphs/{d}_{detail}_{x_label}_{y_label}_{graph_lines}_{graphs_value}.pdf")
         plt.close()

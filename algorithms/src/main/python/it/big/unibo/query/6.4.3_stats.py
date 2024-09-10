@@ -79,7 +79,7 @@ def plotPaper(df):
         ax1.legend(title = f"$\\alpha$")
         plt.tight_layout()
 
-        plt.savefig(f"test/graphs/fig_alpha_beta_{f}.png")
+        plt.savefig(f"test/graphs/fig_alpha_beta_{f}.pdf")
         plt.close()
 
 plotPaper(result_file)
