@@ -106,6 +106,6 @@ fig.legend(handles, labels, bbox_to_anchor=(0.3, .9), loc=3, ncol=len(handles), 
 plt.tight_layout()
 fig.subplots_adjust(top=0.89)
 
-plt.savefig(f"test/graphs/fig_setting_times.png")
+plt.savefig(f"test/graphs/fig_setting_times.pdf")
 plt.close()
 
