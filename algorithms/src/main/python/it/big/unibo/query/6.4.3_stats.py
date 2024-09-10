@@ -36,7 +36,7 @@ supp_meas = "support_sel_avg"
 
 aggregations = {
                    supp_meas: 'mean',
-                   'change_sel': 'mean'
+                   'change_sel': 'sum'
                }
 aggr_col = ["dataset", "alpha", "time"]
 result_file = result.groupby(aggr_col + ["inputFile"]).agg(aggregations).reset_index()
@@ -65,10 +65,10 @@ def plotPaper(df):
             subset = df_graph[df_graph[graph_lines] == v]
             ax1.plot(subset[x1], subset[m1], marker = 'o', linestyle='-', label=v)
             #ax1.bar(positions[i], subset[m1].mean(), bar_width, label=v)
-            ax2.bar(positions[i], subset[m2].mean(), bar_width, label=v)
+            ax2.bar(positions[i], subset[m2].sum(), bar_width, label=v)
         ax1.set_xlabel("Time")
         ax2.set_xlabel(f"$\\alpha$")
-        ax2.set_ylabel("Avg(Query changes)")
+        ax2.set_ylabel("Sum(Query changes)")
         ax1.set_ylabel("Best query support")
         ax1.set_ylim(0, 1.02)  # Set y-axis limits to 0-1
         ax1.set_xticks([1] + [x for x in range(5, subset[x1].max() + 5, 5)])
