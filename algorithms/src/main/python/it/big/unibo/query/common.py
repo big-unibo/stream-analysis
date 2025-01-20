@@ -273,7 +273,7 @@ def get_queries_statistics_by_time(process_df, grouping_columns, datasets = ["sy
     result['SM'] = result['score_sum_ex'] / result['score_sum']
     result['Support_SM'] = result['score_support_sum_ex'] / result['total_queries']
     result['FD_SM'] = result['similarity_sum_ex'] / result['total_queries']
-    #query eseguite rispetto al totale delle fattibili
+    # Queries that have been executed w.r.t. feasible
     result['QM'] = result['executed_queries'] / result["total_queries"]
 
     selected_df = df[df["selected"] == True]
